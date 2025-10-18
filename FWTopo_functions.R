@@ -201,7 +201,6 @@ Web.CascadeModel <- function(S, C, tol, names_1, ...) {
             #
             
             if (loop.value == FALSE) {
-                #DEEPSEEK
                 #LEVINES METHOD FOR TROPHIC LEVEL
                 #checar si la matriz es singular
                 
@@ -312,7 +311,6 @@ Web.NicheModel <- function(S, C, tol, names_1, ...) {
             #
             
             if (loop.value == FALSE) {
-                #DEEPSEEK
                 #LEVINES METHOD FOR TROPHIC LEVEL
                 #checar si la matriz es singular
                 
@@ -1006,7 +1004,6 @@ get_algorithm_choice <- function() {
 
 
 #VALIDATION REPORT
-#DEEP SEEK
 #
 # Add this right after reading your adjacency matrix
 generate_validation_report <- function(adj_matrix, filename, algo_rnd, numb_fws, resol, tiempo, directorio) {
@@ -1275,3 +1272,4 @@ TopologicalImportance<-function(x, n, ...){
     colnames(TIn)<-paste("TI",n, sep="")
     return(TIn)
 }
+
