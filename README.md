@@ -5,7 +5,7 @@
 #   
 #                   17 OCTOBER 2025
 #   
-#   Luis Gerardo Abarca     gabarca@uv.mx   luisgaa@gmail.com
+#   Luis Gerardo Abarca-Arenas     gabarca@uv.mx   luisgaa@gmail.com
 #   Israel Huesca Domínguez ihuesca@uv.mx
 #   
 #   Instituto de Investigaciones Biológicas 
