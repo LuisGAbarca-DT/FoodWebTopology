@@ -59,19 +59,7 @@ Considering the data file name, the resuts will be saved according with this
 name as a prefix of the type of analysis presented. For example, if the file 
 name of the data is your_we.csv then the program will genrate a directory with 
 that name and inside it two more directories, one with the results for the 
-original data and one more with the results for the randomized webs.Following 
-is an example of the structure of the directories:
-
-your_web_RESULTS/                  # Main results directory
-your_web_ANALYSIS_LOG.txt          # Parameters & validation report
-├── ORIGINAL/                      # Original food web analysis
-│   ├── your_web_ORIGINAL_STRC.csv
-│   ├── your_web_ORIGINAL_MODULES.csv
-│   └── ...
-└── RANDOM/                        # Random web ensemble analysis
-    ├── your_web_CASCADE_stats.csv
-    ├── your_web_NICHE_stats.csv
-    └── ...
+original data and one more with the results for the randomized webs.
     
     
 
