@@ -15,15 +15,10 @@
 # INICIO ------------------------------------------------------------------
 
 
-#WORKING DIRECTORY
-#setwd("C:/Users/luisabarca/Documents/R/SCRIPTS/PROYECTO_REDES-AZAR_GITHUB")
-#setwd("D:/PROYECTO_FW_AZAR_GITHUB/FW_SCRIPTS")
-
 #      INSTALL DEPENDENCIES
-#source("C:/Users/lgabarca/Documents/R/PROYECTO_REDES-AZAR_GITHUB/install-dependencies.R")
-#source("D:/PROYECTO_FW_AZAR_GITHUB/FW_SCRIPTS/install-dependencies_2.R")
+
 source("install-dependencies.R")
-#source("run_analysis_FWTopo_9_sept-5-2025.R")
+
 
 
 #REMOVE-DATA -------------------------------------------------------------
@@ -572,6 +567,7 @@ roles <- rol_nodos(gr)
     cat("  ...LISTO...READY...\n")
     cat("    ... ALL DONE ...\n")
     cat("=====================\n")
+
 
 
 
