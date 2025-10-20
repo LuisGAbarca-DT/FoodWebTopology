@@ -14,24 +14,18 @@
 
 # INICIO ------------------------------------------------------------------
 
-
 #      INSTALL DEPENDENCIES
-
 source("install-dependencies.R")
 
 
 
 #REMOVE-DATA -------------------------------------------------------------
-
-
 ####-----------ERASE ALL DATA AND FUNCTIONS
 ####--------USE IT IF YOU ARE SURE TO REMOVE ALL DATA
 rm(list=ls(all.names = TRUE))
 
 #   READS AND RUNS ALL FUNCTIONS
 #   
-#source("C:/Users/luisabarca/Documents/R/SCRIPTS/PROYECTO_REDES-AZAR_GITHUB/FUNCIONES_FWTopo_11-sept-2-2025.R")
-#source("D:/PROYECTO_FW_AZAR_GITHUB/FW_SCRIPTS/FUNCIONES_FWTopo_12-sept-9-2025.R")
 source("FWTopo_functions.R")
 
     #CLEAR SCREEN (CONSOLE)
@@ -567,6 +561,7 @@ roles <- rol_nodos(gr)
     cat("  ...LISTO...READY...\n")
     cat("    ... ALL DONE ...\n")
     cat("=====================\n")
+
 
 
 
