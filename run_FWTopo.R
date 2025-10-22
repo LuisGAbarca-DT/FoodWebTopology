@@ -18,8 +18,9 @@
 source("install-dependencies.R")
 
 
-
 #REMOVE-DATA -------------------------------------------------------------
+
+
 ####-----------ERASE ALL DATA AND FUNCTIONS
 ####--------USE IT IF YOU ARE SURE TO REMOVE ALL DATA
 rm(list=ls(all.names = TRUE))
@@ -40,7 +41,7 @@ source("FWTopo_functions.R")
 #   the adjacency matrix as an .csv type
 #  file_name -------------------------------------------------------------
     cat("\014")
-    
+    cat("Choose the data file \n")
 file_address <- file.choose()
 dat <- read.table(file_address,sep = ",", header = T)
 file_name <- basename(file_address)  #nombre del file_name
@@ -561,8 +562,6 @@ roles <- rol_nodos(gr)
     cat("  ...LISTO...READY...\n")
     cat("    ... ALL DONE ...\n")
     cat("=====================\n")
-
-
 
 
 
