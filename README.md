@@ -11,7 +11,7 @@
    
 **Institution:**
 - Instituto de Investigaciones Biológicas 
--         Universidad Veracruzana
+- Universidad Veracruzana
 **Repository:** https://github.com/LuisGAbarca-DT/FoodWebTopology
 
 ##Overview
@@ -50,7 +50,7 @@ The adjacency matrix should be in CSV format with:
 
 ### 2. Run Analysis
 
-source("run_FWTopo.R")```
+source("run_FWTopo.R")
     
 - This will install all dependencies and load the libraries
 
@@ -64,7 +64,7 @@ source("run_FWTopo.R")```
 
 Considering the data file name, the resuts will be saved according with this
 name as a prefix of the type of analysis presented. For example, if the file 
-name of the data is your_we.csv then the program will genrate a directory with 
+name of the data is your_web.csv then the program will genrate a directory with 
 that name and inside it two more directories, one with the results for the 
 original data and one more with the results for the randomized webs.Following 
 is an example of the structure of the directories:
@@ -79,5 +79,6 @@ is an example of the structure of the directories:
 ### Support
 
 For issues or questions, please open an issue on GitHub or contact the authors.
+
 
 
