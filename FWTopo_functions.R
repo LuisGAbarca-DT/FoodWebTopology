@@ -454,7 +454,7 @@ draw_1 <- function(graph_data, comun) {
          vertex.shape="sphere", 
          layout = layout_nicely(graph_data),   #layout_as_tree(gr,root = c(40,41,42,43), circular = TRUE, flip.y = TRUE),  #layout_with_kk(gr, dim=3),      #layout_nicely, 
          vertex.size=5, 
-         edge.arrow.size =0.1, 
+         edge.arrow.size =0.2, 
          edge.curved = 0.4, 
          #edge.width = E(gr)$weight * 10,
          vertex.label.cex = 1)
@@ -1272,4 +1272,3 @@ TopologicalImportance<-function(x, n, ...){
     colnames(TIn)<-paste("TI",n, sep="")
     return(TIn)
 }
-
