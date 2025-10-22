@@ -6,12 +6,12 @@
 
 **Authors:**
 
-Luis Gerardo Abarca     gabarca@uv.mx   luisgaa@gmail.com
-Israel Huesca Domínguez ihuesca@uv.mx
+- Luis Gerardo Abarca     gabarca@uv.mx   luisgaa@gmail.com
+- Israel Huesca Domínguez ihuesca@uv.mx
    
 **Institution:**
-Instituto de Investigaciones Biológicas 
-        Universidad Veracruzana
+- Instituto de Investigaciones Biológicas 
+-         Universidad Veracruzana
 **Repository:** https://github.com/LuisGAbarca-DT/FoodWebTopology
 
 ##Overview
@@ -79,4 +79,5 @@ is an example of the structure of the directories:
 ### Support
 
 For issues or questions, please open an issue on GitHub or contact the authors.
+
 
