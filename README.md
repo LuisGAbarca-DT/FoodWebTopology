@@ -10,11 +10,13 @@
 - Israel Huesca Domínguez ihuesca@uv.mx
    
 **Institution:**
+
 - Instituto de Investigaciones Biológicas 
 - Universidad Veracruzana
+
 **Repository:** https://github.com/LuisGAbarca-DT/FoodWebTopology
 
-##Overview
+## Overview
 
 Computes various structural and topological indices for a food web, Including
 - Number of species by category (basal, intermediate, top)
@@ -29,7 +31,7 @@ observed food web structure. All results are exported as comma-delimited files.
 
 ## Data Format Requirements
 
-The adjacency matrix should be in CSV format with:
+- The adjacency matrix should be in CSV format with:
 - **Columns** = predators
 - **Rows** = prey  
 - **Values**: 0 (no interaction) or 1 (predation)
@@ -50,7 +52,7 @@ The adjacency matrix should be in CSV format with:
 
 ### 2. Run Analysis
 
-source("run_FWTopo.R")
+    source("run_FWTopo.R")```
     
 - This will install all dependencies and load the libraries
 
@@ -64,14 +66,13 @@ source("run_FWTopo.R")
 
 Considering the data file name, the resuts will be saved according with this
 name as a prefix of the type of analysis presented. For example, if the file 
-name of the data is your_web.csv then the program will genrate a directory with 
-that name and inside it two more directories, one with the results for the 
-original data and one more with the results for the randomized webs.Following 
-is an example of the structure of the directories:
+name of the data is **your_web.csv** then the program will genrate a directory 
+with that name and inside it two more directories, one with the results for the 
+original data and one more with the results for the randomized webs.
 
 ### Features
-- Multiple Null Models: Cascade, Niche, Erdős–Rényi, and custom algorithms
-- Comprehensive Metrics: 20+ structural and topological indices
+- Multiple Null Models: Cascade, Niche, Erdős–Rényi
+- Comprehensive Metrics: 15+ structural and topological indices
 - Modularity Analysis: Leiden algorithm with adjustable resolution
 - Validation Checks: Automated data integrity verification
 - Reproducible: Complete analysis logging and parameter tracking
@@ -79,6 +80,4 @@ is an example of the structure of the directories:
 ### Support
 
 For issues or questions, please open an issue on GitHub or contact the authors.
-
-
 
