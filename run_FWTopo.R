@@ -13,7 +13,7 @@
 #   
 
 # INICIO ------------------------------------------------------------------
-setwd("D:/PROYECTO_FW_AZAR_GITHUB/FW_SCRIPTS/FWTopo_V2")
+#setwd("D:/PROYECTO_FW_AZAR_GITHUB/FW_SCRIPTS/FWTopo_V2")
 #      INSTALL DEPENDENCIES
 source("install-dependencies.1.3.R")
 
