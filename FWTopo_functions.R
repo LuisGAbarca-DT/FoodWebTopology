@@ -996,6 +996,11 @@ fw_struct_rnd <- function(g_rand, tl_y_or_no, names_1) {
         troph_level <- ShortWeightedTrophicLevel(commty)
         tl_mean <- mean(troph_level)
         maxTL <- max(troph_level)
+    } else {
+        tl_mean <- 0
+        maxTL <- 0
+        chains_nom <- 0
+        
     }
     
     #Especies BSALES
@@ -1200,4 +1205,34 @@ get_memory_usage <- function() {
         free <- as.numeric(mem[4]) + as.numeric(mem[6]) + as.numeric(mem[7])  # free + buffers + cache
     }
     return(list(total = total, free = free, used_pct = (total - free) / total * 100))
+}
+
+
+#FUNCTION FOR THE COMPUTING TROPHIC LEVEL FOR RANDOM WEBS OPTION
+#
+display_TL_menu <- function() {
+    cat("\n")
+    cat("=================================================\n")
+    cat("FWTopo: Trophic Level for Random Webs Option\n")
+    cat("=================================================\n")
+    
+    cat("=================================================\n")
+    
+}
+
+# Get user input with validation FOR THE PLOTTING OPTION
+get_TL_choice <- function() {
+    display_TL_menu()
+    
+    while (TRUE) {
+        choice <- readline(prompt = "Please enter 1 = YES or 2 = NO : ")
+        
+        # Validate input
+        if(choice == "1" | choice == "2" ) {
+            return(choice)
+        } else {
+            
+            cat("Enter YES or NO \n")
+        }
+    }
 }

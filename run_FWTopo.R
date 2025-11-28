@@ -93,7 +93,7 @@ tope <- length(top)
 if (b  == 0 | tope == 0) {
     stop("There are no basal or top nodes. Can not proceed with the analysis")
 } else {
-    cat("All good")
+    cat("All good\n")
 }
 
 # CREATE_DIRS -------------------------------------------------------------
@@ -168,6 +168,14 @@ if (algo_num != 5) {
     algo <- get_num_fw_choice()
     algo
     num_rand_webs <- as.numeric(algo)
+    
+    tl_rnd <- get_TL_choice()
+    
+    if (tl_rnd == "1") {
+        tl_rnd_y <- "YES"
+    } else if (tl_rnd == "2") {
+        tl_rnd_y <- "NO"
+    }
 }
     
 # DEFINE RESOLUTION FOR THE LEIDEN ALGORITHM
@@ -417,7 +425,7 @@ rm(roles)
         
         #STRUCTURE...
             res_estr_rnd <- NULL
-            res_estr_rnd <- fw_struct_rnd(rand_matrix[[i]], "YES", names_1)
+            res_estr_rnd <- fw_struct_rnd(rand_matrix[[i]], tl_rnd_y, names_1)
             
             # Convert results to a data frame
             estructura_azar <- rbind(estructura_azar, res_estr_rnd)
@@ -504,7 +512,6 @@ rm(roles)
     cat("  ...LISTO...READY...\n")
     cat("    ... ALL DONE ...\n")
     cat("=====================\n")
-
 
 
 
