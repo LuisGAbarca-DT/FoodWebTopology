@@ -1,9 +1,9 @@
 #  
 #  
 #               Food Web Topology Analysis
-#                   Master Script
-#   
-#                   31 AUGUST 2025
+#                   FUNCTIONS
+#                   V 1.4
+#                   26 NOVEMBER 2025
 #   
 #   Luis Gerardo Abarca     gabarca@uv.mx   luisgaa@gmail.com
 #   Israel Huesca Domínguez ihuesca@uv.mx
@@ -128,19 +128,7 @@ grados <- function(gr_deg) {
     
 }
 
-
-#       calcula transitivity o clustering de la red de acuerdo a igraph
-#       
-#           LUIS GERARDO ABARCA ARENAS
-#               08 07 2023
-#               
-#               V 0.9
-#               
-
-# g_trans <- gr
-
 rol_nodos <- function(mat) {
-    
     #simetrizar 
     matriz <- igraph::as_adjacency_matrix(mat, sparse=FALSE)
     matriz_simet <- sna::symmetrize(matriz, rule = "weak")
@@ -149,7 +137,6 @@ rol_nodos <- function(mat) {
     
     return(roles)
 }
-
 
 # FUNCTION TO GENERATE A FOOD WEB ACCORDING TO THE CASCADE MODEL
 # Cohen, J. E., F. Briand, and C. M. Newman. 1990a. Community Food Webs:
@@ -391,8 +378,8 @@ fw_struct_2 <- function(g_rand, tl_y_or_no, names_1) {
     
     #Eliminar ciclos del grafo
     if(DAG ==FALSE){
-        edges_cycle<-feedback_arc_set(gr, algo="approx_eades")
-        gr_rand<-delete_edges(gr, edges_cycle)
+        edges_cycle<-feedback_arc_set(g_rand, algo="approx_eades")
+        g_rand<-delete_edges(g_rand, edges_cycle)
     }
     #   calcula el average path length
     
@@ -406,12 +393,12 @@ fw_struct_2 <- function(g_rand, tl_y_or_no, names_1) {
     commty <- Community(nodes = data.frame(node=NODE),
                         trophic.links=PredationMatrixToLinks(g_tempo),
                         properties=list(title="Community"))
+    #CLEAR g_tempo...RAM amount IS IMPORTANT AT THIS STAGE
+    rm(g_tempo) 
     
     if (tl_y_or_no == "YES") {
-        
         chain.stats <- TrophicChainsStats(commty)
         troph_level <- ShortWeightedTrophicLevel(commty)
-        
         tl_mean <- mean(troph_level)
         maxTL <- max(troph_level)
         chains_nom <- length(chain.stats$chain.lengths)
@@ -419,33 +406,42 @@ fw_struct_2 <- function(g_rand, tl_y_or_no, names_1) {
     }
     
     #Especies BSALES
-    basal <- BasalNodes(commty)
-    b <- length(basal)
-    
+    b <- length(BasalNodes(commty))
+
     #Especies INTERMEDIAS
-    interm <- IntermediateNodes(commty)
-    int <- length(interm)
-    
+    int <- length(IntermediateNodes(commty))
+
     #Especies TOPE
-    top <- TopLevelNodes(commty)
-    tope <- length(top)
-    
+    tope <- length(TopLevelNodes(commty))
+
     #"Especies OMNIVORAS
-    omni <- Omnivores(commty)
-    omni <- length(omni)
+    omni <- length(Omnivores(commty))
+
+    #vulnerability and generality normalized by L. use std for comparissons
     
-    return(list(N = num_sps, L = num_links, 
-                con = conectance, B = b, I = int, 
-                T = tope, O = omni, TLMean = tl_mean,
-                TLmax = maxTL, NCh = chains_nom, 
-                mean_path_length = mean_path_len))
+    vul <- NormalisedTrophicVulnerability(commty)
+    
+    gen <- NormalisedTrophicGenerality(commty)
+    
+    return(list(N = num_sps, 
+                L = num_links, 
+                con = conectance, 
+                B = b, 
+                I = int, 
+                T = tope, 
+                O = omni, 
+                TLMean = tl_mean,
+                TLmax = maxTL, 
+                NCh = chains_nom, 
+                mean_path_length = mean_path_len,
+                nivel_trof_sps = troph_level,
+                vul_std = sd(vul),
+                gen_std = sd(gen)))
     
 }
 
 #   FUNCION draw_1 RED
-#   
 #   FUNCTION TO DRAW A FOOD WEB
-#   
 #   graph_data = an igraph object of the food web
 #   
 draw_1 <- function(graph_data, comun) {
@@ -467,10 +463,8 @@ draw_1 <- function(graph_data, comun) {
 }
 
 #FUNCTION TO CALCULATE MODULARITY ACCORDING TO THE Leiden ALORITHM
-#
 #matriz = igraph object of the food web
 #resolucion = resolution to be used by the algorithm
-#
 
 modul_l <- function(matriz, resolucion) {
     
@@ -486,66 +480,16 @@ modul_l <- function(matriz, resolucion) {
     
     modularidad_azar <- modularity(matriz, membership(resulta_l),
                                    directed = TRUE)
-    
-    #res_l <- data.frame(num_mod = no_modulos_azar, 
-    #                    modularidad = modularidad_azar)
-    
+
     return(resulta_l)
-    
 }
 
-#               
-#  FUNCION TO CALCULATE THE transitivity or clustering of a food web
+#  FUNTCION TO CALCULATE THE transitivity or clustering of a food web
 #  g_trans = an igraph object of the food web
-#  
 #  returns the transitivity value
-#  
-
 transi <- function(g_trans) {
-    
     trans <- transitivity(g_trans, type = "global")
-    
     return(trans)
-
-}
-
-#FUNCTION TO CALCULATE THE Leiden modules and modularity using various
-#values of resolution and iterations
-#
-#gr = an igraph object of the food web
-
-test_resolution <- function(gr) {
-    k <- 1
-    y <- c(100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300, 1400, 1500)
-    x <- c(0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5)
-    
-    resmod <- expand.grid(X = seq(0.5, 1.5, by = 0.1), Y = seq(100, 1500, by = 100), Z = 0)
-    
-    # browser()
-    # 
-    for (i in y) {
-        #k <- 0
-        # m <- m + 1
-        
-        for (j in x){
-            
-            resulta7 <- leiden.community(gr, resolution = j, 
-                                         n.iterations = i)
-            
-            modulos7 <- resulta7$membership
-            modulos7 <- as.numeric(modulos7)
-            z <- max(modulos7)
-            z
-            
-            #resmod [k,1] <- i
-            resmod [k, 3] <- z
-            
-            k <- k + 1
-        }
-    }
-    
-    return(resmod)
-    
 }
 
 #FUNCTION TO GENERATE A FOOD WEB ACCORDING TO THE Erdös-Renyi model
@@ -559,13 +503,9 @@ er <- function(gr, names_1) {
     
     v <- gsize(gr)
     n <- vcount(gr)
-    
     # browser()
-    
     #   DEFINE VARIABLES
-    #   
     q_2 <- 1
-    
     basal <- 0
     top <- 0
     out_loop <- 0  #FALSO
@@ -574,16 +514,7 @@ er <- function(gr, names_1) {
     #graph_data DUMMY to begin with the while loop 
     
     g1 <- sample_gnm(5, 6, directed = TRUE)
-    
-    #g2 <- sampl(3, 0.2, directed = TRUE)
-    
-    # Combine the components into a single graph
-    #g_rand_erdos <- g1%du%g2
-    
-    #g_rand_erdos <- sample_gnm(n, v, directed = TRUE)
-    
-    #while (igraph::is_connected(g_rand_erdos)== "FALSE") 
-    #
+
     while (conected == "FALSE") {
         
         basal <- 0
@@ -595,7 +526,6 @@ er <- function(gr, names_1) {
         # 
         #prueba ciclos
         DAG<-is_dag(g_rand_erdos)
-        
         #Eliminar ciclos del grafo
         if(DAG == FALSE){
             edges_cycle<-feedback_arc_set(g_rand_erdos, algo="approx_eades")
@@ -604,34 +534,22 @@ er <- function(gr, names_1) {
         }
 
         if (conected == "TRUE") {
-            
             #suma columnas para checar basal si es diferente de zero
-            #
             pred_mat_rand <- as_adjacency_matrix(g_rand_erdos)
-            
             pred_mat_rand <- as.matrix(pred_mat_rand)
-            
             q_1 <- apply(pred_mat_rand, 2, sum)
-            
             basal <- sum(q_1 == 0)
             print(basal)
-            
             q_3 <- apply(pred_mat_rand, 1, sum)
-            
             top <- sum(q_3 == 0)
             print(top)
             
             if (basal == 0 && top == 0){
-                
                 print("basal Y top = 0")
-                
             } else {
                 print("ni top ni basal = 0")
-                
                 out_loop <- 1  #verdadero
-                
             }
-            
             if (out_loop == 1) {
                 
                 #   sale de todo el loop porque ya es conected y las top 
@@ -639,7 +557,6 @@ er <- function(gr, names_1) {
                 
                 break
             }
-            
         }
         
         g_tempo <- as.matrix(as_adjacency_matrix(g_rand_erdos))
@@ -881,6 +798,13 @@ prop_modules <- function(groups, g_rand, graphic) {
     return(module_str)
 }
 
+#GENERATE RANDOM FOOD WEBS ACCORDING TO THE GIVEN ALGORITHM
+#gr = original food web as an igraph object
+#names_1 = names of the nodes
+#num_rand_webs 0 number of random food webs to be generated
+#random_model_type = name of the random model algorithm
+#RETURN A LIST WITH THE RANDOM FOOD WEBS
+#
 gen_rnd_fw <- function(gr, names_1, num_rand_webs, random_model_type) {
 
 #browser()
@@ -890,18 +814,13 @@ gen_rnd_fw <- function(gr, names_1, num_rand_webs, random_model_type) {
             sps <- vcount(gr)
             num_links <- ecount(gr)
             conec <- num_links / (sps ^2)
-            
             #tolerancia es conectividad * porcentaje de esa conectividad, 
             #Williams & Martinez (2000) mencionan este intervalo, + - el 3% de la C observada
-            #
-            
             tolerancia <- conec * 0.03
-            
             #   LLAMA A LA FUNCION PARA GENERAR vueltas NÚMERO DE REDES CON
             #   CIRTA TOLERANCIA PARA CONECTIVIDAD Y CIERTO NUMERO DE ESPSECIES
             #   EL RESULTADO ES UNA LISTA CON TODAS LAS graph_data GENERADAS
-            #   
-            
+
             #rand_matrix <- Web.NicheModel(sps, conec, tolerancia, num_rand_webs, names_1)
             rand_matrix <- lapply(1:num_rand_webs, function(i) Web.NicheModel(sps, conec, tolerancia, names_1)) 
         }
@@ -917,7 +836,6 @@ gen_rnd_fw <- function(gr, names_1, num_rand_webs, random_model_type) {
                 conec <- num_links / (sps ^2)
                 #tolerancia es conectividad * porcentaje de esa conectividad, 
                 #Williams & Martinez (2000) mencionan este intervalo, + - el 3% de la C observada
-                #
                 tolerancia <- conec * 0.03
                 
                 rand_matrix <- lapply(1:num_rand_webs, function(i) Web.CascadeModel(sps, conec, tolerancia, names_1))
@@ -928,14 +846,15 @@ gen_rnd_fw <- function(gr, names_1, num_rand_webs, random_model_type) {
             if (random_model_type == "niche_allesina") {
                 
                 #niche model modified by Allesina et al
-                #
+
                 sps <- vcount(gr)
                 num_links <- ecount(gr)
                 conec <- num_links / (sps ^2)
                 
                 #rand_matrix <- niche_model_2(sps, conec, num_rand_webs)
                 #browser()
-                rand_matrix <- lapply(1:num_rand_webs, function(i) niche_model_2(sps, conec, names_1))
+                rand_matrix <- lapply(1:num_rand_webs, function(i) 
+                    niche_model_2(sps, conec, names_1))
             }
                
         else {
@@ -974,8 +893,12 @@ niche_model_2 <- function(sps, conec, names_1) {
 # Display available algorithms
 display_algorithm_menu <- function() {
     cat("\n")
+    cat("  _________________________________________________\n")
+    cat("               Food Web Topology Analysis\n")
+    cat("  _________________________________________________\n")
+    
     cat("=================================\n")
-    cat("FWTopo: Available Algorithms\n")
+    cat("Available Algorithms\n")
     cat("=================================\n")
     for (i in 1:length(algorithm_map)) {
         cat(sprintf("%d. %s\n", i, algorithm_map[i]))
@@ -1006,11 +929,14 @@ get_algorithm_choice <- function() {
 #VALIDATION REPORT
 #
 # Add this right after reading your adjacency matrix
-generate_validation_report <- function(adj_matrix, filename, algo_rnd, numb_fws, resol, tiempo, directorio) {
+generate_validation_report <- function(adj_matrix, filename, algo_rnd, 
+                                       numb_fws, resol, tiempo, directorio) {
     cat("🔬 Generating FWTopo Validation Report...\n")
     
     # Basic validation
     report <- list(
+        title = "....FOOD WEB TOPOLOGY ANALYSIS...",
+        title_2 = "         V 1.4",
         input_file = filename,
         analysis_date = Sys.Date(),
         dimensions = dim(adj_matrix),
@@ -1037,17 +963,21 @@ generate_validation_report <- function(adj_matrix, filename, algo_rnd, numb_fws,
 
 
 fw_struct_rnd <- function(g_rand, tl_y_or_no, names_1) {
-    #function to compute topology of the fw one by one
-    #
+    #function to compute topology of the random food web one by one
+    #g_rand = random food web as an igraph object
+    #tl_y_or_no do we compute trophic level
+    #names_1 = names of nodes
+    
    # browser()
     num_sps <- vcount(g_rand)
     num_links <- ecount(g_rand)
     conectance <- num_links / (num_sps ^2)
-    
+        cat("Number of node: \n")
+        print(num_sps)
+        cat("Number of links: \n")
+        print(num_links)
     #   calcula el average path length
-    
     mean_path_len <- mean_distance(g_rand, directed = TRUE)
-    
     g_tempo <- as.matrix(as_adjacency_matrix(g_rand))
     rownames(g_tempo) <- paste("SPS", names_1, sep = "")
     colnames(g_tempo) <- paste("SPS", names_1, sep = "")
@@ -1058,33 +988,30 @@ fw_struct_rnd <- function(g_rand, tl_y_or_no, names_1) {
                         properties=list(title="Community"))
     
     if (tl_y_or_no == "YES") {
-        
-        #options(cheddarMaxQueue = 0)
-        
         chain.stats <- TrophicChainsStats(commty)
-        troph_level <- ShortWeightedTrophicLevel(commty)
+        chains_nom <- length(chain.stats$chain.lengths)
+            cat("Number of chains: \n")
+            print(chains_nom)
         
+        troph_level <- ShortWeightedTrophicLevel(commty)
         tl_mean <- mean(troph_level)
         maxTL <- max(troph_level)
-        chains_nom <- length(chain.stats$chain.lengths)
-        
     }
     
     #Especies BSALES
-    basal <- BasalNodes(commty)
-    b <- length(basal)
-    
+    b <- length(BasalNodes(commty))
     #Especies INTERMEDIAS
-    interm <- IntermediateNodes(commty)
-    int <- length(interm)
-    
+    int <- length(IntermediateNodes(commty))
     #Especies TOPE
-    top <- TopLevelNodes(commty)
-    tope <- length(top)
-    
+    tope <- length(TopLevelNodes(commty))
     #"Especies OMNIVORAS
-    omni <- Omnivores(commty)
-    omni <- length(omni)
+    omni <- length(Omnivores(commty))
+
+    #vulnerability and generality normalized by L. use std for comparissons
+    
+    vul <- NormalisedTrophicVulnerability(commty)
+    
+    gen <- NormalisedTrophicGenerality(commty)
     
     res_est_rnd_1 <- data.frame(N = num_sps, 
                 L = num_links,
@@ -1096,9 +1023,10 @@ fw_struct_rnd <- function(g_rand, tl_y_or_no, names_1) {
                 TLMean = tl_mean,
                 TLmax = maxTL, 
                 NCh = chains_nom, 
-                mean_path_length = mean_path_len)
-    
-    
+                mean_path_length = mean_path_len,
+                vul_std = sd(vul),
+                gen_std = sd(gen))
+
     return(res_est_rnd_1)
     
 }
@@ -1118,7 +1046,6 @@ display_figura_menu <- function() {
 }
 
 # Get user input with validation FOR THE PLOTTING OPTION
-# 
 get_figura_choice <- function() {
     display_figura_menu()
     
@@ -1132,8 +1059,6 @@ get_figura_choice <- function() {
             
             cat("Enter YES or NO \n")
         }
-        
-        
     }
 }
 
@@ -1166,8 +1091,6 @@ get_resolution_choice <- function() {
             
             cat("Enter a value greater than 0\n")
         }
-        
-        
     }
 }
 
@@ -1200,8 +1123,6 @@ get_num_fw_choice <- function() {
             
             cat("Enter a value greater than 0\n")
         }
-        
-        
     }
 }
 
@@ -1209,13 +1130,6 @@ get_num_fw_choice <- function() {
 #Status and Contrastatus, Harary F. (1959)
 
 StatusContrastatus<-function(gr, ...){
-    
-    #Packages
-    #require(igraph)
-    
-    #Create graph
-    #gr<-graph_from_adjacency_matrix(as.matrix(x))
-    
     #Nodes
     Nodes<-V(gr)
     Si<-numeric()
@@ -1238,11 +1152,10 @@ StatusContrastatus<-function(gr, ...){
 }
 
 #Positional importance based on indirect chain effects
-
 #Function:
-# Cite: Jordán, F., Liu, W., & van Veen, J.F. (2003). Quantifying the importance of 
-# species and their interactions in a host-parasitoid community. Community 
-# Ecology, 4(1), 79-88.
+# Cite: Jordán, F., Liu, W., & van Veen, J.F. (2003). Quantifying 
+# the importance of # species and their interactions in a host-parasitoid 
+# community. Community # Ecology, 4(1), 79-88.
 
 #Argument:
 # x: Adjacent matrix
@@ -1271,4 +1184,20 @@ TopologicalImportance<-function(x, n, ...){
     TIn<-data.frame(rowSums(a.sum)/n)
     colnames(TIn)<-paste("TI",n, sep="")
     return(TIn)
+}
+
+## CAPTURES AMOUNT OF RAM MEMORY
+get_memory_usage <- function() {
+    if (.Platform$OS.type == "windows") {
+        mem <- system("wmic OS get FreePhysicalMemory,TotalVisibleMemorySize /Value", intern = TRUE)
+        mem <- mem[grepl("FreePhysicalMemory|TotalVisibleMemorySize", mem)]
+        free <- as.numeric(gsub("\\D", "", mem[1])) / 1024
+        total <- as.numeric(gsub("\\D", "", mem[2])) / 1024
+    } else {
+        mem <- system('free -m | grep Mem:', intern = TRUE)
+        mem <- strsplit(mem, "\\s+")[[1]]
+        total <- as.numeric(mem[2])
+        free <- as.numeric(mem[4]) + as.numeric(mem[6]) + as.numeric(mem[7])  # free + buffers + cache
+    }
+    return(list(total = total, free = free, used_pct = (total - free) / total * 100))
 }

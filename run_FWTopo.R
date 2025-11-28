@@ -2,8 +2,8 @@
 #  
 #               Food Web Topology Analysis
 #                   Master Script
-#   
-#                   31 AUGUST 2025
+#                       V.1.1
+#                   26 NOVEMBER 2025
 #   
 #   Luis Gerardo Abarca     gabarca@uv.mx   luisgaa@gmail.com
 #   Israel Huesca Domínguez ihuesca@uv.mx
@@ -13,21 +13,19 @@
 #   
 
 # INICIO ------------------------------------------------------------------
-
+setwd("D:/PROYECTO_FW_AZAR_GITHUB/FW_SCRIPTS/FWTopo_V2")
 #      INSTALL DEPENDENCIES
-source("install-dependencies.R")
+source("install-dependencies.1.3.R")
 
 
 #REMOVE-DATA -------------------------------------------------------------
-
-
 ####-----------ERASE ALL DATA AND FUNCTIONS
 ####--------USE IT IF YOU ARE SURE TO REMOVE ALL DATA
 rm(list=ls(all.names = TRUE))
 
 #   READS AND RUNS ALL FUNCTIONS
 #   
-source("FWTopo_functions.R")
+source("FWTopo_functions.1.4.R")
 
     #CLEAR SCREEN (CONSOLE)
     #
@@ -41,10 +39,16 @@ source("FWTopo_functions.R")
 #   the adjacency matrix as an .csv type
 #  file_name -------------------------------------------------------------
     cat("\014")
+    cat("  _________________________________________________\n")
+    cat("               Food Web Topology Analysis\n")
+    cat("                         V 1.4 \n")
+    cat("  _________________________________________________\n")
+    cat("\n")
+    
     cat("Choose the data file \n")
 file_address <- file.choose()
 dat <- read.table(file_address,sep = ",", header = T)
-file_name <- basename(file_address)  #nombre del file_name
+file_name <- basename(file_address)  
 
 head(dat,3)
 tail(dat,3)
@@ -70,7 +74,8 @@ dat_mat <- as.matrix(dat)
 gr<-graph_from_adjacency_matrix(dat_mat, weighted = FALSE, mode = c("directed"))
 
 if(igraph::is_connected(gr) == "FALSE"){
-    stop("Can not proceed with the analysis. The graph is not completely connected")
+    stop("Can not proceed with the analysis. 
+         The graph is not completely connected")
 }else {
     cat("All good")
 }
@@ -91,15 +96,13 @@ if (b  == 0 | tope == 0) {
     cat("All good")
 }
 
-cat("\014")
-
 # CREATE_DIRS -------------------------------------------------------------
-
 
 # Create a new directory in the current working directory
 # all results will be saved in there
 # 
 fwt_results_dir <- gsub(".csv", "", file_name)
+fwt_results_dir <- str_c(fwt_results_dir, "_", "FWTA")
 dir.create(fwt_results_dir, recursive = TRUE) 
 
 # Create a directory with a specific path
@@ -115,9 +118,6 @@ dir.create(fwt_results_dir_orig, recursive = TRUE)
 fwt_results_dir_rand <- str_c(fwt_results_dir_orig_res, "/RANDOM")
 dir.create(fwt_results_dir_rand, recursive = TRUE) 
 
-
-# DEFINE_VAR_FUNCT --------------------------------------------------------
-
 # SELECT_RAND_ALGO --------------------------------------------------------
 
 #    ALGORITHM TO USE TO GENERATE RANDOM FOOD WEBS
@@ -129,13 +129,12 @@ dir.create(fwt_results_dir_rand, recursive = TRUE)
 algorithm_map <- c(
     "1" = "erdos-renyi",
     "2" = "cascade",
-    "3" = "niche-W",
-    "4" = "niche-AAP",  # Replace with your custom algorithm name
+    "3" = "niche-Williams-Cohen",
+    "4" = "niche-Allesina-Alonso-Pascal",  
     "5" = "none"
 )
 
     algo <- get_algorithm_choice()
-
 
     algo <- as.data.frame(algo)
     algo_num <- as.numeric(rownames(algo))
@@ -197,15 +196,18 @@ compute_module_str <- "NO"
 # LIST OF THE MODULES STRUCTURE FOR THE ORIGINAL WEB
 orig_module_str <- list()
 
-
 #cheddar option to continue computting trophic level without producing an error
 #for big food webs
-options(cheddarMaxQueue = 0)
-
+    options(cheddarMaxQueue = 0)
 
         #CLEAR SCREEN (CONSOLE)
         #
         cat("\014")
+        cat("\n")
+        cat("\n")
+        cat("\n")
+        cat("      WORKING ON THE ORIGINAL FOOD WEB\n")
+        cat("................................................\n")
 
 if (figure == "YES") {
     draw_1(gr, cama)
@@ -214,20 +216,23 @@ if (figure == "YES") {
 # COMPUTE STRUCTURE ORIGINAL -----------------------------------------------------------
 
 original_str <- fw_struct_2 (gr, "YES", names_1)
-
+    #TROPHIC LEVEL FOR EACH SPECIES
+    niv_trof_sps <- as.data.frame(original_str$nivel_trof_sps)
+    colnames(niv_trof_sps)[1] <- "TL"
+    
+        xx <- gsub(".csv", "", file_name)
+        write_file_1 <- str_c(fwt_results_dir_orig, "/", xx, "_ORIGINAL_", "SPSsTL.csv")
+        write.table(niv_trof_sps, file = write_file_1, append = F, sep = ",")
+        
+    original_str$nivel_trof_sps <- NULL
+        
 #   COMPUTE TRANSITIVITY
-
 tt <- transi(gr)
 original_str$trans <- tt 
-
-#   compute the average path length
-
-mean_path_len <- mean_distance(gr, directed = TRUE)
-
-    original_str$mean_path_l <- mean_path_len
+#remove tt object
+rm(tt)
 
 # KEYSTONE ----------------------------------------------------------
-
 
 kb<-k.parameter(dat)
 kt<-k.parameter(t(dat))
@@ -235,22 +240,35 @@ kt<-k.parameter(t(dat))
     keystone<-data.frame(Kbu=kb[,3], Ktd=kt[,3], Kdir=kb[,1]+kt[,1], 
                          Kindir=kb[,2]+kt[,2], K=kb[,3]+kt[,3])
 
-#keystone
-keystone <- as.matrix(keystone)
-rownames(keystone) <- paste("SPS", names_1, sep = "")
-keystone <- as.data.frame(keystone)
+    keystone <- as.data.frame(keystone)
+    keystone$SPS <- paste("SPS", names_1, sep = "")
+#       make nice table
+#       move last col to first place
+    keystone <- keystone %>%
+        relocate(SPS)
+    gt_tabla <- gt(keystone)
+    gt_tabla
+    # gt_tabla %>%
+    #     cols_move_to_start(columns = SPS)
+    # 
+    tabla_K <- as.data.frame(gt_tabla)
 
 xx <- gsub(".csv", "", file_name)
 write_file_1 <- str_c(fwt_results_dir_orig, "/", xx, "_", "ORIGINAL_KEYSTONE.csv")
-write.table(keystone, file = write_file_1, append = F, sep = ",")
+write.table(tabla_K, file = write_file_1, append = F, sep = ",")
+
+#remove keystone object
+rm(keystone)
 
 # CENTRALIDAD -------------------------------------------------------------
 
 deg <-  grados(gr)
 
-xx <- gsub(".csv", "", file_name)
-write_file_1 <- str_c(fwt_results_dir_orig, "/", xx, "_", "CENTRALITIES.csv")
-write.table(deg, file = write_file_1, append = F, sep = ",")
+    xx <- gsub(".csv", "", file_name)
+    write_file_1 <- str_c(fwt_results_dir_orig, "/", xx, "_", "ORIGINAL_CENTRALITIES.csv")
+    write.table(deg, file = write_file_1, append = F, sep = ",")
+#remove deg object
+rm(deg)
 
 #------------ COMPUTE TOPOLOGICAL IMPORTANCE ----------
 #
@@ -266,10 +284,11 @@ write.table(deg, file = write_file_1, append = F, sep = ",")
             TopoImpor.1.5 <- data.frame(TI1 = TopoImp_1$TI1, 
                                         TI3 = TopoImp_3$TI3,
                                         TI5 = TopoImp_5$TI5)
-xx <- gsub(".csv", "", file_name)
-write_file_1 <- str_c(fwt_results_dir_orig, "/", xx, "_", "TOPO_IMPORT.csv")
-write.table(TopoImpor.1.5, file = write_file_1, append = F, sep = ",")
-
+    xx <- gsub(".csv", "", file_name)
+    write_file_1 <- str_c(fwt_results_dir_orig, "/", xx, "_", "TOPO_IMPORT.csv")
+    write.table(TopoImpor.1.5, file = write_file_1, append = F, sep = ",")
+#remove pasos object
+rm(pasos)
 
 #-------COMPUTE STATUS Y CONTRASTATUS-------------
 
@@ -278,11 +297,11 @@ xx <- gsub(".csv", "", file_name)
 write_file_1 <- str_c(fwt_results_dir_orig, "/", xx, "_", "STATUS.csv")
 write.table(Status, file = write_file_1, append = F, sep = ",")
 
+#remove Status object
+rm(Status)
 
 #-------------   COMPUTE MODULARITY FOR THE ORIGINAL FOOD WEB
-
 # MODULARITY --------------------------------------------------------------
-
 
     resulta7_a <- modul_l(gr, resolucion)
     
@@ -308,42 +327,36 @@ write.table(Status, file = write_file_1, append = F, sep = ",")
                 draw_modules(gr, module_numb_leid, resulta7_a)
                 
             }
-            
-        
-# PRTITION ----------------------------------------------------------------
 
+# PRTITION ----------------------------------------------------------------
 #  to which module the nodes pertain to 
-# 
-# 
 parti <- NULL
             
-parti <- as.data.frame(resulta7_a$membership)
-        parti[,2] <- row.names(parti)
-        parti[,3] <- as.numeric(parti$'resulta7_a$membership')
-        parti <- parti %>% 
-            select(-'resulta7_a$membership')
-        
-        parti <- parti %>%
-            rename(
-                SPS = V2,
-                Module = V3
-            )
-#head(parti,5)
+    parti <- as.data.frame(resulta7_a$membership)
+            parti[,2] <- row.names(parti)
+            parti[,3] <- as.numeric(parti$'resulta7_a$membership')
+            parti <- parti %>% 
+                select(-'resulta7_a$membership')
+            rownames(parti) <- NULL
 
     xx <- gsub(".csv", "", file_name)
     write_file_1 <- str_c(fwt_results_dir_orig, "/", xx, "_", "ORIGINAL_LEIDEN_PART.csv")
     write.table(parti, file = write_file_1, append = F, sep = ",")
 
-# MODULE_STRUCTURE --------------------------------------------------------
+#remove parti object
+rm(parti)
 
+# MODULE_STRUCTURE --------------------------------------------------------
 #STRUCTURE OF EACH MODULE FOR THE ORIGINAL WEB
-#
+
 orig_module_str <- list(prop_modules(groups = as.numeric(resulta7_a$membership  ), g_rand = gr, graphic ="no"))
     my_dataframe <- bind_rows(orig_module_str)
 
         xx <- gsub(".csv", "", file_name)
         write_file_1 <- str_c(fwt_results_dir_orig, "/", xx, "_", "ORIGINAL_MODULE_STRC.csv")
         write.table(my_dataframe, file = write_file_1, append = F, sep = ",")
+#remove orig_module_str
+rm(orig_module_str)
 
 # CROSSED_NODES -----------------------------------------------------------
         
@@ -351,28 +364,31 @@ shared_nodes <- intersected(gr, resulta7_a)
     xx <- gsub(".csv", "", file_name)
     write_file_1 <- str_c(fwt_results_dir_orig, "/", xx, "_", "ORIGINAL_SHARED_NODES.csv")
     write.table(shared_nodes, file = write_file_1, append = F, sep = ",")
+#remove shared_nodes object
+rm(shared_nodes)
 
 # NODE_ROLE ---------------------------------------------------------------
 
-#rol de los nodos
-#
 roles <- rol_nodos(gr)
     roles[[2]] <- NULL
 # roles
     xx <- gsub(".csv", "", file_name)
-    write_file_1 <- str_c(fwt_results_dir_orig, "/", xx, "_", "NODES_ROL_ORIGINAL.csv")
+    write_file_1 <- str_c(fwt_results_dir_orig, "/", xx, "_", "ORIGINAL_NODES_ROL.csv")
     write.table(roles, file = write_file_1, append = F, sep = ",")
+#remove roles object
+rm(roles)
 
-     #if we want to generate random food webs go ahead if not jump this section
+# GEN_RND_FW --------------------------------------------------------------
+ #if we want to generate random food webs go ahead, whwn algo_num less 
+ #than 5 if not jump this section
 
  if (algo_num != 5) {
          
-        # GEN_RND_FW --------------------------------------------------------------
-    
-    #GENERATE RANDOM FOOD WEBS ACCORDING TO THE CHOSENALGORITHM 
+    cat("GENERATING RANDOM FOOD WEBS...\n")
+    #GENERATE RANDOM FOOD WEBS ACCORDING TO THE CHOSEN ALGORITHM 
         rand_matrix <- list()
         rand_matrix <- gen_rnd_fw(gr, names_1, num_rand_webs, random_model_type)
-    
+        
     # RND_FW_STRUCT -----------------------------------------------------------
     # this routine computes the topology of the random food webs one by one
     # this will avoid loosing the information if there is a crash due to 
@@ -380,14 +396,25 @@ roles <- rol_nodos(gr)
         estructura_azar <- NULL
         start_time <- Sys.time()
         
+        #INITIAL MEMORY
+        mem <- get_memory_usage()
+        
+        
     for (i in 1: num_rand_webs) {
-        #CLEAR SCREEN
-        # cat("\014")
+        cat("\014")
+        cat("  _________________________________________________\n")
+        cat("               Food Web Topology Analysis\n")
+        cat("                         V 1.4 \n")
+        cat("  _________________________________________________\n")
+        cat("\n")
         
         cat("\n")
         cat("\n")
         print(". . . w o r k i n g. . . ")
         cat("\n")
+        cat("Random Food Web being analyzed Number: \n")
+        print(i)
+        
         #STRUCTURE...
             res_estr_rnd <- NULL
             res_estr_rnd <- fw_struct_rnd(rand_matrix[[i]], "YES", names_1)
@@ -396,8 +423,13 @@ roles <- rol_nodos(gr)
             estructura_azar <- rbind(estructura_azar, res_estr_rnd)
             #estructura_azar <- do.call(rbind, lapply(res_estr_rnd, as.data.frame))
             
-            print("Number of random webs analyzed:")
-            print(i)
+            # print("Number of random webs analyzed:")
+            # print(i)
+            
+            #MEMORY USE
+                cat("Memory used: \n")
+                mem_2 <- get_memory_usage()
+                print(mem$total - mem_2$total)
             
     }
         
@@ -405,7 +437,7 @@ roles <- rol_nodos(gr)
         cat("\n")
         cat("Time spent :\n")
         
-        cat(tiempo, "SECONDS\n")
+        cat(tiempo/60, "MINUTES\n")
         
         
         
@@ -425,11 +457,11 @@ roles <- rol_nodos(gr)
             num_modul_leid_rnd <- lapply(1:num_rand_webs, function(i) max(as.numeric(modularity_leid_rnd[[i]]$membership)))
             num_modul_leid_rnd <- do.call(rbind, lapply(num_modul_leid_rnd, as.data.frame))
             
-            estructura_azar[,12] <- num_modul_leid_rnd
-            estructura_azar[,13] <- modul_leiden_rnd
+            estructura_azar[,14] <- num_modul_leid_rnd
+            estructura_azar[,15] <- modul_leiden_rnd
             
-            colnames(estructura_azar)[12] <- "No_Modules"
-            colnames(estructura_azar)[13] <- "Modularity"
+            colnames(estructura_azar)[14] <- "No_Modules"
+            colnames(estructura_azar)[15] <- "Modularity"
     
             
         xx <- gsub(".csv", "", file_name)
@@ -446,112 +478,22 @@ roles <- rol_nodos(gr)
                     append = F, sep = ",")
             }
         
-         
-        
-        
-    
-    #     this is to run all at once using the lapply
-    #     
-    # #   STRUCTURE FOR EACH RANDOM FOOD WEB
-    #     cat("\n")
-    #     cat("\n")
-    #     cat("\n")
-    # #log_info("Starting analysis of STRUCTURE FOR MODULES OF RANDOM FOOD WEBS")
-    #     cat("\n")
-    #     cat("\n")
-    # 
-    # start_time <- Sys.time()
-    # 
-    #     res_estr <- list()
-    #     res_estr<-lapply(1:num_rand_webs, function(i) fw_struct_2(rand_matrix[[i]], "YES", names_1))
-    # #log_info("Completed in {difftime(Sys.time(), start_time)} minutes")
-    # 
-    # tiempo<-difftime(Sys.time(), start_time, units = "secs")    
-    # cat(tiempo, "SECONDS\n")
-    # 
-    # # Convert results to a data frame
-    #     estructura_azar <- NULL
-    #     estructura_azar <- do.call(rbind, lapply(res_estr, as.data.frame))
-    # 
-    # # MODUL_STRUC_RND_FW ------------------------------------------------------
-    # #
-    # #MODULARITY FOR EACH RANDOM FOOD WEB
-    # #
-    #     modularity_leid_rnd <- list()
-    #     modularity_leid_rnd <- lapply(1:num_rand_webs, function(i) modul_l(rand_matrix[[i]], 1))
-    #         
-    #         #MODULARITY OF RANDOM FOOD WEBS AS LIST
-    #         mod_leid_azar <- lapply(1:num_rand_webs, function(i) modularity(rand_matrix[[i]], modularity_leid_rnd[[i]]$membership, directed = TRUE))
-    #             #MODULARITY OF RANDOM FOOD WEBS AS DATA FRAME
-    #             modul_leiden_rnd <- do.call(rbind, lapply(mod_leid_azar, as.data.frame))
-    #             
-    #             #NUMBER OF MODULES FOR EACH RANDOM FOOD WEB
-    #             num_modul_leid_rnd <- lapply(1:num_rand_webs, function(i) max(as.numeric(modularity_leid_rnd[[i]]$membership)))
-    #             num_modul_leid_rnd <- do.call(rbind, lapply(num_modul_leid_rnd, as.data.frame))
-    #             
-    #             estructura_azar[,12] <- num_modul_leid_rnd
-    #             estructura_azar[,13] <- modul_leiden_rnd
-    #             
-    #                 colnames(estructura_azar)[12] <- "No_Modules"
-    #                 colnames(estructura_azar)[13] <- "Modularity"
-    #                 
-    #                     # View the first few rows
-    #                 head(estructura_azar)
-    #                 
-    #                 xx <- gsub(".csv", "", file_name)
-    #                 write_file_1 <- str_c(fwt_results_dir_rand, "/", xx, "_", 
-    #                                       "STRUCT_AZAR_", random_model_type, ".csv")
-    #                 write.table(estructura_azar, file = write_file_1, 
-    #                             append = F, sep = ",")
-    #        
-    #        
-    #        
-        if (compute_module_str == "YES") {     
-            
-        #####if yes will compute the topology for each module for each random
-        #####food web...be aware that will be time consuming and RAM might overflow
-            
-            struct_by_module_by_web <- lapply(1:num_rand_webs, function(i) prop_modules(as.numeric(modularity_leid_rnd[[i]]$membership), rand_matrix[[i]], "no" ))
-            #STRUCTURE BY MODULE
-            dff<-ldply(struct_by_module_by_web, data.frame)
-        
-            #str_per_mod_per_fw_df <- qqq1[FALSE,]
-            
-            for (i in 1:num_rand_webs) {  
-                
-                qqq1<-ldply(struct_by_module_by_web[[i]], data.frame)
-                colnames(qqq1)[1]<-"mod"
-                head(qqq1)
-                
-                    qqq1 <- arrange(qqq1, mod)
-                
-                        qqq1 <- qqq1 %>%
-                            mutate(RndFW = c(rep(i,num_modul_leid_rnd[i,1])), .before = mod)
-                            if(i == 1) {
-                                str_per_mod_per_fw_df <- qqq1
-                            }
-                        else {
-                            str_per_mod_per_fw_df <- rbind(str_per_mod_per_fw_df, qqq1)
-                        }
-            }
-            
-                xx <- gsub(".csv", "", file_name)
-                write_file_1 <- str_c(fwt_results_dir_rand, "/", xx, "_", "STRUCT_AZAR_per_module_per_rndfw_", random_model_type, ".csv")
-                write.table(str_per_mod_per_fw_df, file = write_file_1, append = F, sep = ",")
-        }
-                    
 }
         
-
 # VALIDATION REPORT -----------------------
-# 
-# produces a log file of the analyses
-# 
-    validation <- generate_validation_report(dat, file_name, random_model_type, num_rand_webs, resolucion, tiempo, fwt_results_dir_orig_res)
+    # produces a log file of the analyses
+    # 
+    validation <- generate_validation_report(dat, file_name, random_model_type,
+                                             num_rand_webs, resolucion, tiempo, 
+                                             fwt_results_dir_orig_res)
                 
+    #CLEAN MEMORY
+    gc()
     #CLEAR SCREEN (CONSOLE)
     #
     cat("\014")
+    validation <- as.data.frame(do.call(rbind, validation))
+    validation$V2 <- NULL
     print(validation)
     
 # END ---------------------------------------------------------------------

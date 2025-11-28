@@ -24,7 +24,6 @@ packages <- c(
     "dplyr", 
     "ggplot2", 
     "ggpubr", 
-    "nortest", 
     "sna", 
     "rnetcarto",
     "ATNr",
@@ -39,7 +38,7 @@ install_if_missing <- function(pkg) {
     }
 }
 library(purrr)
-purrr::walk(packages, install_if_missing)  # Installs all gracefully
+purrr::walk(packages, install_if_missing)  
 
 #READ ALL LIBRARIES TO BE USED
 library(igraph)
@@ -50,7 +49,6 @@ library(plyr)
 library(dplyr)
 library(ggplot2)
 library(ggpubr)
-library(nortest)
 library(sna)
 library(rnetcarto)
 library(ATNr)

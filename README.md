@@ -2,7 +2,7 @@
 #  
 #               Food Web Topology Analysis
 #   
-**17 OCTOBER 2025**
+**27 NOVEMBER 2025**
 
 **Authors:**
 
@@ -25,13 +25,13 @@ Computes various structural and topological indices for a food web, Including
 - Modularity (using Leiden algorithm
 - And other topological metrics
 
-Generates random food webs through different null models and compares them to 
-observed food web structure. All results are exported as comma-delimited files.
+Generates random food webs through different null models. All results are 
+exported as comma-delimited files.
 
 
 ## Data Format Requirements
 
-- The adjacency matrix should be in CSV format with:
+- The adjacency matrix should be in csv format with:
 - **Columns** = predators
 - **Rows** = prey  
 - **Values**: 0 (no interaction) or 1 (predation)
@@ -46,7 +46,7 @@ observed food web structure. All results are exported as comma-delimited files.
 
 ### 1. Setup
 - Download all FWTopo files to a single folder
-- Place your food web CSV file in the same folder
+- Place your food web csv file in the same folder
 - Set R's working directory to this folder
 
 
