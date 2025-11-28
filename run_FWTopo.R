@@ -15,7 +15,7 @@
 # INICIO ------------------------------------------------------------------
 #setwd("D:/PROYECTO_FW_AZAR_GITHUB/FW_SCRIPTS/FWTopo_V2")
 #      INSTALL DEPENDENCIES
-source("install-dependencies.1.3.R")
+source("install-dependencies.R")
 
 
 #REMOVE-DATA -------------------------------------------------------------
@@ -25,7 +25,7 @@ rm(list=ls(all.names = TRUE))
 
 #   READS AND RUNS ALL FUNCTIONS
 #   
-source("FWTopo_functions.1.4.R")
+source("FWTopo_functions.R")
 
     #CLEAR SCREEN (CONSOLE)
     #
@@ -504,6 +504,7 @@ rm(roles)
     cat("  ...LISTO...READY...\n")
     cat("    ... ALL DONE ...\n")
     cat("=====================\n")
+
 
 
 
