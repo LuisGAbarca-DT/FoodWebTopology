@@ -61,7 +61,10 @@ exported as comma-delimited files.
 - Select the csv file with the food web data
 - Choose the randomization model
 - Enter the number of random food webs to be generated
+- Enter if you want to compute number of chains and trophic levels for each
+    random web (the computation is time consuming and uses big amounts of RAM for large webs)
 - Enter the resolution for the Leiden Modularity algorithm (higher = more modules)
+- Enter if you want a figure of the food web and each of the modules
     
 
 Considering the data file name, the resuts will be saved according with this
