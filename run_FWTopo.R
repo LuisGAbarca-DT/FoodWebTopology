@@ -254,16 +254,16 @@ kt<-k.parameter(t(dat))
 #       move last col to first place
     keystone <- keystone %>%
         relocate(SPS)
-    gt_tabla <- gt(keystone)
-    gt_tabla
+    # gt_tabla <- gt(keystone)
+    # gt_tabla
     # gt_tabla %>%
     #     cols_move_to_start(columns = SPS)
     # 
-    tabla_K <- as.data.frame(gt_tabla)
+    # tabla_K <- as.data.frame(gt_tabla)
 
 xx <- gsub(".csv", "", file_name)
 write_file_1 <- str_c(fwt_results_dir_orig, "/", xx, "_", "ORIGINAL_KEYSTONE.csv")
-write.table(tabla_K, file = write_file_1, append = F, sep = ",")
+write.table(keystone, file = write_file_1, append = F, sep = ",")
 
 #remove keystone object
 rm(keystone)
