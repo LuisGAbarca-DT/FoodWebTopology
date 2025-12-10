@@ -2,7 +2,8 @@
 #  
 #               Food Web Topology Analysis
 #   
-**27 NOVEMBER 2025**
+#                     V. 1.1
+**09 DECEMBER 2025**
 
 **Authors:**
 
@@ -40,13 +41,33 @@ exported as comma-delimited files.
   - At least one basal species (in-degree = 0)
   - At least one top species (out-degree = 0)
   - No isolated nodes or disconnected groups
+  
+  ### **Validation:**
+- The script will stop with a clear error message if your file does not meet 
+these specifications. Please reformat your data accordingly. A template file is 
+provided in the repository (`template_foodweb.csv`).
+  
+## 📁 Mandatory Data Format
+
+FWTopo requires a **square, binary adjacency matrix with alphanumeric node names** in CSV format to ensure 
+reliable analysis.
+
+### **Example: `example_foodweb.csv`**
+
+- ,Species_A,Species_B,Species_C,Species_D
+- Species_A,0,1,0,0
+- Species_B,0,0,1,1
+- Species_C,0,0,0,0
+- Species_D,0,0,1,0
+
+### **Note:** If the row and column names must be numeric, the program will add the suffix "SPS_" to the number in order to comply with the alphanumeric characteristic
 
 ## Quick Start
 
 
 ### 1. Setup
 - Download all FWTopo files to a single folder
-- Place your food web csv file in the same folder
+- Place your food web csv file in the same folder (Optional)
 - Set R's working directory to this folder
 
 

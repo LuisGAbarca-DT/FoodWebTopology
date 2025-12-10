@@ -2,14 +2,158 @@
 #  
 #               Food Web Topology Analysis
 #                   FUNCTIONS
-#                   V 1.4
-#                   26 NOVEMBER 2025
+#                   V 1.1
+#                   09 DECEMBER 2025
 #   
 #   Luis Gerardo Abarca     gabarca@uv.mx   luisgaa@gmail.com
 #   Israel Huesca Domínguez ihuesca@uv.mx
 #   
 #               IIB Universidad Veracruzana
 #   
+
+read_data <- function () {
+    #receives nothing
+    #Returns a list with dat as the dayacency matrix
+    #                    cama as a chedar community list
+    #                    gr as an igraph list
+    
+    #   READ DATA
+    #   the adjacency matrix as an .csv type
+    
+    #datos <- list()
+    
+    cat("\014")
+    cat("  _________________________________________________\n")
+    cat("               Food Web Topology Analysis\n")
+    cat("                         V 1.4 \n")
+    cat("  _________________________________________________\n")
+    cat("\n")
+    
+    cat("Choose the data file \n")
+    file_address <- file.choose()
+    dat <- read.table(file_address,sep = ",", header = T)
+    file_name <- basename(file_address)  
+    
+    names_1 <- as.matrix(dat[,1])
+    #head(names_1)
+    
+    dat<-as.matrix(dat[,-1])
+    
+    rownames(dat) <- names_1# paste("SPS_", names_1, sep = "")
+    colnames(dat) <- names_1 #paste("SPS_", names_1, sep = "")
+    head(dat)
+    
+    cat("Validating format for:", file_name, "\n")
+    
+    # 1. CHECK: Matrix is square
+    if (nrow(dat) != ncol(dat)) {
+        stop("ERROR: The adjacency matrix is not square.\n",
+             "  -> Found ", nrow(dat), " rows and ", ncol(dat), " columns.\n",
+             "  -> Please ensure the number of species (rows) matches the number of predators (columns).")
+    }
+    
+    # 2. CHECK: Row names match column names IN THE SAME ORDER
+    if (!identical(rownames(dat), colnames(dat))) {
+        # Give a helpful hint about the first mismatch
+        mismatch_idx <- which(rownames(dat) != colnames(dat))[1]
+        stop("ERROR: Species order mismatch.\n",
+             "  -> At position ", mismatch_idx, ", row name is '", rownames(dat)[mismatch_idx],
+             "' but column name is '", colnames(dat)[mismatch_idx], "'.\n",
+             "  -> Please ensure the species list is identical and in the *same order* for rows and columns.")
+    }
+    
+    # 3. CHECK: All values are 0 or 1 (Binary Adjacency)
+    if (!all(as.matrix(dat) %in% c(0, 1))) {
+        invalid_vals <- unique(as.vector(as.matrix(dat)[!as.matrix(dat) %in% c(0, 1)]))
+        stop("ERROR: Matrix contains non-binary values.\n",
+             "  -> Found values: ", paste(invalid_vals, collapse = ", "), "\n",
+             "  -> Please ensure all interactions are coded as 0 (absent) or 1 (present).")
+    }
+    
+    # # 4. CHECK: No row/column is all zeros (optional, but good for early warning)
+    # all_zero_rows <- which(rowSums(dat) == 0 & colSums(dat) == 0)
+    # if (length(all_zero_rows) > 0) {
+    #     warning("  WARNING: Species at row(s) ", paste(all_zero_rows, collapse = ", "),
+    #             " have no interactions (completely disconnected).\n",
+    #             "  -> This may indicate a formatting error or a true isolated species.")
+    
+    
+    # 5. NEW CHECK: Names must not be pure numbers
+    
+    all_names <- c(rownames(dat), colnames(dat))
+    
+    # Identify names that are purely numeric (can be coerced to a number without error)
+    numeric_names <- all_names[!is.na(suppressWarnings(as.numeric(all_names)))]
+    
+    if (length(numeric_names) > 0) {
+        cat("ATTENTION: Invalid species names detected.\n",
+             "  -> The following names are purely numeric: ", 
+             paste(unique(numeric_names), collapse = ", "), "\n",
+             "  -> Package dependencies (like 'cheddar') require proper alphanumeric names.\n",
+             "  -> Please rename them (e.g., '1' -> 'Sp1', 'Species_1', or 'S01').\n",
+            "-> The program will add the prefix SPS_ to the number\n\n")
+        
+        rownames(dat) <- paste("SPS_", names_1, sep = "")
+        colnames(dat) <- paste("SPS_", names_1, sep = "")
+        cat("   Modified names use 'SPS_' prefix to ensure compatibility with analysis packages.\n\n")
+        
+    }
+    
+    # Optional but good: Also warn about names with spaces or special characters
+    problematic_names <- all_names[grepl("[^[:alnum:]_]", all_names)] # Matches non-alphanumeric/underscore
+    if(length(problematic_names) > 0) {
+        warning("  NOTE: Some names contain spaces or special characters: ", 
+                #paste(unique(problematic_names), collapse = ", "), "\n",
+                "  -> Consider using only letters, numbers, and underscores for compatibility.")
+        
+    }
+    
+    cat("  ✓ Species name validation passed.\n")
+    cat("  ✓ Format validation passed for", nrow(dat), "species.\n")
+
+# ARRANGE DATA FOR cheddar
+    NODE <- colnames(dat)
+    
+    cama<- Community(nodes=data.frame(node=NODE),
+                     trophic.links=PredationMatrixToLinks(dat),
+                     properties=list(title="Community"))
+    
+# ARRENGING DATA FOR iraph
+    dat_mat <- as.matrix(dat)
+    gr<-graph_from_adjacency_matrix(dat_mat, weighted = FALSE, mode = c("directed"))
+    
+    if(igraph::is_connected(gr) == "FALSE"){
+        stop("Can not proceed with the analysis. 
+         The graph is not completely connected")
+    }else {
+        cat("All good")
+    }
+    
+    # CHECK THAT THERE IS AT LEAST 1 BASAL AND 1 TOP
+    # 
+    #Especies BSALES
+    basal <- BasalNodes(cama)
+    b <- length(basal)
+    
+    #Especies TOPE
+    top <- TopLevelNodes(cama)
+    tope <- length(top)
+    
+    if (b  == 0 | tope == 0) {
+        stop("There are no basal or top nodes. Can not proceed with the analysis")
+    } else {
+        cat("All good\n")
+    }
+    
+        return(list(file_name = file_name,
+                    dat = dat,
+                    cama = cama,
+                    gr = gr,
+                    names_1 = names_1)
+               )
+    
+}
+#draw modules one by one if the option is chosen
 draw_modules <- function(grafica, num_mod, modularidad) {
     
     comps <- num_mod
@@ -398,10 +542,11 @@ fw_struct_2 <- function(g_rand, tl_y_or_no, names_1) {
     
     if (tl_y_or_no == "YES") {
         chain.stats <- TrophicChainsStats(commty)
+        chains_nom <- length(chain.stats$chain.lengths)
+        rm(chain.stats) #remove this object to get RAM
         troph_level <- ShortWeightedTrophicLevel(commty)
         tl_mean <- mean(troph_level)
         maxTL <- max(troph_level)
-        chains_nom <- length(chain.stats$chain.lengths)
         
     }
     
@@ -456,7 +601,10 @@ draw_1 <- function(graph_data, comun) {
          vertex.label.cex = 1)
     #BY TROPHIC LEVEL USING SHORT WEIGHRTD TROPHIC LEVEL OPTION FROM cheddar
     #
-    PlotWebByLevel(comun, level = "ShortWeightedTrophicLevel")
+    PlotWebByLevel(comun, ylim=c(1,4.5), main='Short Weighed', 
+                   level = "ShortWeightedTrophicLevel", ylab = "Trophic Level",
+                   round.levels.to.nearest = 0.5, show.level.labels = TRUE,
+                   show.level.lines = FALSE, show.nodes.as = "points") 
     
     return()
     
@@ -936,15 +1084,15 @@ generate_validation_report <- function(adj_matrix, filename, algo_rnd,
     # Basic validation
     report <- list(
         title = "....FOOD WEB TOPOLOGY ANALYSIS...",
-        title_2 = "         V 1.4",
+        title_2 = "         V 1.1",
         input_file = filename,
-        analysis_date = Sys.Date(),
+        analysis_date <- Sys.Date(),
         dimensions = dim(adj_matrix),
         is_square = nrow(adj_matrix) == ncol(adj_matrix),
         total_interactions = sum(adj_matrix),
         connectance = round(sum(adj_matrix) / nrow(adj_matrix)^2, 3),
-        basal_species = sum(rowSums(adj_matrix) == 0),
-        top_predators = sum(colSums(adj_matrix) == 0),
+        top_species = sum(rowSums(adj_matrix) == 0),
+        basal_predators = sum(colSums(adj_matrix) == 0),
         is_connected = igraph::is_connected(igraph::graph_from_adjacency_matrix(adj_matrix)),
         algorithm = algo_rnd,
         number_of_fws = numb_fws,

@@ -3,7 +3,7 @@
 #               Food Web Topology Analysis
 #                   Master Script
 #                       V.1.1
-#                   26 NOVEMBER 2025
+#                   09 DECEMBER 2025
 #   
 #   Luis Gerardo Abarca     gabarca@uv.mx   luisgaa@gmail.com
 #   Israel Huesca Domínguez ihuesca@uv.mx
@@ -18,7 +18,7 @@
 source("install-dependencies.R")
 
 
-#REMOVE-DATA -------------------------------------------------------------
+#REMOVE-OBJECTS -------------------------------------------------------------
 ####-----------ERASE ALL DATA AND FUNCTIONS
 ####--------USE IT IF YOU ARE SURE TO REMOVE ALL DATA
 rm(list=ls(all.names = TRUE))
@@ -28,73 +28,22 @@ rm(list=ls(all.names = TRUE))
 source("FWTopo_functions.R")
 
     #CLEAR SCREEN (CONSOLE)
-    #
     cat("\014")
 
-    # cat("  _________________________________________________\n")
-    # cat("               Food Web Topology Analysis\n")
-    # cat("  _________________________________________________\n")
+
+# READ_DATA ---------------------------------------------------------------
+
+####***LOAD DATA AND ARRABGE IT TO BE USED BY cheddar and igraph
+####*
+    datos <- read_data()
     
-#   READ DATA
-#   the adjacency matrix as an .csv type
-#  file_name -------------------------------------------------------------
-    cat("\014")
-    cat("  _________________________________________________\n")
-    cat("               Food Web Topology Analysis\n")
-    cat("                         V 1.4 \n")
-    cat("  _________________________________________________\n")
-    cat("\n")
+    file_name <- datos$file_name
+    dat <- datos$dat
+    cama<- datos$cama
+    gr <- datos$gr
+    names_1 <- datos$names_1
     
-    cat("Choose the data file \n")
-file_address <- file.choose()
-dat <- read.table(file_address,sep = ",", header = T)
-file_name <- basename(file_address)  
-
-head(dat,3)
-tail(dat,3)
-
-   
-names_1 <- as.matrix(dat[,1])
-#head(names_1)
-
-dat<-as.matrix(dat[,-1])
-
-rownames(dat) <- paste("SPS_", names_1, sep = "")
-colnames(dat) <- paste("SPS_", names_1, sep = "")
-
-# ARRENGING DATA FOR cheddar --------------------------------------------------------
-
-NODE<-rownames(dat)
-cama<- Community(nodes=data.frame(node=NODE),
-                 trophic.links=PredationMatrixToLinks(dat),
-                 properties=list(title="Community"))
-
-#ARRENGING DATA FOR iraph
-dat_mat <- as.matrix(dat)
-gr<-graph_from_adjacency_matrix(dat_mat, weighted = FALSE, mode = c("directed"))
-
-if(igraph::is_connected(gr) == "FALSE"){
-    stop("Can not proceed with the analysis. 
-         The graph is not completely connected")
-}else {
-    cat("All good")
-}
-
-# CHECK THAT THERE IS AT LEAST 1 BASAL AND 1 TOP
-# 
-#Especies BSALES
-basal <- BasalNodes(cama)
-b <- length(basal)
-
-#Especies TOPE
-top <- TopLevelNodes(cama)
-tope <- length(top)
-
-if (b  == 0 | tope == 0) {
-    stop("There are no basal or top nodes. Can not proceed with the analysis")
-} else {
-    cat("All good\n")
-}
+        rm(datos)
 
 # CREATE_DIRS -------------------------------------------------------------
 
@@ -166,7 +115,7 @@ if (algo_num != 5) {
 #   DEFINE NUMBER OF RANDOM FOOD WEBS TO BE GENERATED
     #   
     algo <- get_num_fw_choice()
-    algo
+    #algo
     num_rand_webs <- as.numeric(algo)
     
     tl_rnd <- get_TL_choice()
@@ -191,7 +140,7 @@ if (algo_num != 5) {
     } else if (figure == "2"){
         figure <- "NO"
     }
-    figure
+    #figure
     
 
 # COMPUTE THE STRUCTURE FOR EACH MODULE FOR EACH RANDOM MATRIX?
@@ -495,14 +444,15 @@ rm(roles)
                                              num_rand_webs, resolucion, tiempo, 
                                              fwt_results_dir_orig_res)
                 
-    #CLEAN MEMORY
-    gc()
     #CLEAR SCREEN (CONSOLE)
     #
     cat("\014")
     validation <- as.data.frame(do.call(rbind, validation))
     validation$V2 <- NULL
+    validation[4,1] <- format(Sys.time(), "%Y%m%d_%H%M%S_")
     print(validation)
+    #CLEAN MEMORY
+    gc()
     
 # END ---------------------------------------------------------------------
      
