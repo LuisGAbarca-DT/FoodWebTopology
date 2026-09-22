@@ -1,0 +1,109 @@
+igraph
+Csárdi G, Nepusz T, Traag V, Horvát Sz, Zanini F,
+  Noom D, Müller K, Schoch D, Salmon M (2026).
+  _igraph: Network Analysis and Visualization in R_.
+  doi:10.5281/zenodo.7682609
+  <https://doi.org/10.5281/zenodo.7682609>. R package
+  version 2.3.1,
+  <https://CRAN.R-project.org/package=igraph>.
+
+stringr
+Wickham H (2025). _stringr: Simple, Consistent
+  Wrappers for Common String Operations_.
+  doi:10.32614/CRAN.package.stringr
+  <https://doi.org/10.32614/CRAN.package.stringr>. R
+  package version 1.6.0,
+  <https://CRAN.R-project.org/package=stringr>.
+
+cheddar
+Lawrence Hudson, Daniel Reuman and Rob Emerson
+  (2024). Cheddar: analysis and visualisation of
+  ecological communities. R package version 0.1-639.
+  https://cran.r-project.org/package=cheddar
+
+leidenAlg
+Kharchenko P, Petukhov V, Wang Y, Biederstedt E
+  (2026). _leidenAlg: Implements the Leiden Algorithm
+  via an R Interface_.
+  doi:10.32614/CRAN.package.leidenAlg
+  <https://doi.org/10.32614/CRAN.package.leidenAlg>. R
+  package version 1.1.8,
+  <https://CRAN.R-project.org/package=leidenAlg>.
+
+plyr
+Hadley Wickham (2011). The Split-Apply-Combine
+  Strategy for Data Analysis. Journal of Statistical
+  Software, 40(1), 1-29. URL
+  https://www.jstatsoft.org/v40/i01/.
+
+dplyr
+Wickham H, François R, Henry L, Müller K, Vaughan D
+  (2026). _dplyr: A Grammar of Data Manipulation_.
+  doi:10.32614/CRAN.package.dplyr
+  <https://doi.org/10.32614/CRAN.package.dplyr>. R
+  package version 1.2.1,
+  <https://CRAN.R-project.org/package=dplyr>.
+
+
+ggplot2
+H. Wickham. ggplot2: Elegant Graphics for Data
+  Analysis. Springer-Verlag New York, 2016.
+
+ggpubr
+Kassambara A (2026). _ggpubr: 'ggplot2' Based
+  Publication Ready Plots_.
+  doi:10.32614/CRAN.package.ggpubr
+  <https://doi.org/10.32614/CRAN.package.ggpubr>. R
+  package version 0.6.3,
+  <https://CRAN.R-project.org/package=ggpubr>.
+
+
+sna
+Butts CT (2024). _sna: Tools for Social Network
+  Analysis_. doi:10.32614/CRAN.package.sna
+  <https://doi.org/10.32614/CRAN.package.sna>. R
+  package version 2.8,
+  <https://CRAN.R-project.org/package=sna>.
+
+ATNr
+Gauzens B, Berti E (2025). _ATNr: Run Allometric
+  Trophic Networks Models_.
+  doi:10.32614/CRAN.package.ATNr
+  <https://doi.org/10.32614/CRAN.package.ATNr>. R
+  package version 1.1.2,
+  <https://CRAN.R-project.org/package=ATNr>.
+
+logger
+Daróczi G, Wickham H (2026). _logger: A Lightweight,
+  Modern and Flexible Logging Utility_.
+  doi:10.32614/CRAN.package.logger
+  <https://doi.org/10.32614/CRAN.package.logger>. R
+  package version 0.4.2,
+  <https://CRAN.R-project.org/package=logger>.
+  
+ ggnetwork
+ Briatte F (2025). _ggnetwork: Geometries to Plot
+  Networks with 'ggplot2'_.
+  doi:10.32614/CRAN.package.ggnetwork
+  <https://doi.org/10.32614/CRAN.package.ggnetwork>. R
+  package version 0.5.14,
+  <https://CRAN.R-project.org/package=ggnetwork>.
+
+
+ggthemes
+Arnold J (2025). _ggthemes: Extra Themes, Scales and
+  Geoms for 'ggplot2'_.
+  doi:10.32614/CRAN.package.ggthemes
+  <https://doi.org/10.32614/CRAN.package.ggthemes>. R
+  package version 5.2.0,
+  <https://CRAN.R-project.org/package=ggthemes>.
+  
+ RColorBrewer
+ Neuwirth E (2022). _RColorBrewer: ColorBrewer
+  Palettes_. doi:10.32614/CRAN.package.RColorBrewer
+  <https://doi.org/10.32614/CRAN.package.RColorBrewer>.
+  R package version 1.1-3,
+  <https://CRAN.R-project.org/package=RColorBrewer>.
+  
+  
+
