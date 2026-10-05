@@ -6,7 +6,7 @@
 #                     
 #               12 SEPTEMBER 2026
 #   
-#   Luis Gerardo Abarca     gabarca@uv.mx   luisgaa@gmail.com
+#   Luis Gerardo Abarca-Arenas     gabarca@uv.mx   luisgaa@gmail.com
 #   Israel Huesca Domínguez ihuesca@uv.mx
 #   
 #               IIB Universidad Veracruzana
@@ -26,9 +26,6 @@
 
 TL_Compute <- function(g_rand, commty) {
     
-    # chain.stats <- TrophicChainsStats(commty)
-    # chains_nom <- length(chain.stats$chain.lengths)
-    # rm(chain.stats) #remove this object to get RAM
     # browser()
     # 3. METRIC 1: PREY-AVERAGED TL (The native cheddar version)
     prey_avg_tl <- PreyAveragedTrophicLevel(commty)
@@ -70,7 +67,7 @@ TL_Compute <- function(g_rand, commty) {
 # A NOTATION AS AN ARROW OF THE EMPIRICAL (OBSERVED) TROPHIC LEVEL OF 
 # THE ORIGINAL FOOD WEB
 # 
-draw_rnd_dens <- function(tl_azar, tl_observ) {
+draw_rnd_dens <- function(tl_azar, tl_observ, rnd_type, file_name) {
     
     #tl_observ = the trophic level of the original food web
     #rnd_tl = the trophic level of the random food web
@@ -105,10 +102,11 @@ draw_rnd_dens <- function(tl_azar, tl_observ) {
                            function(v) max(density(v)$y)))
     # --- Plot ---
     p = ggplot(df, aes(x = value, fill = web, color = web)) +
-        geom_density(alpha = 0.5, linewidth = 0.4) +
+        geom_density(alpha = 0.5, linewidth = 0.4,
+                     show.legend = FALSE) +
         geom_segment(
             data = obs,
-            aes(x = x, xend = x, y = 0, yend = dens_max * 0.0, color = web),
+            aes(x = x, xend = x, y = 0, yend = dens_max * 0.0, color = "red"),
             arrow = arrow(length = unit(0.5, "cm")),
             linewidth = 0.9,
             inherit.aes = FALSE,
@@ -125,13 +123,39 @@ draw_rnd_dens <- function(tl_azar, tl_observ) {
         scale_color_manual(values = my_colors, name = "Web") +
         labs(
             x = "Trophic Level",
-            y = "Density"
+            y = "Density",
+            title = paste("Density of Trophic Levels for Random Food Webs (", 
+                          rnd_type, ")", sep = " "),
+            subtitle = paste("Arrow is the observed TL |", file_name, sep = " ")
         ) +
-        theme_few(base_size = 15)
+        theme_minimal()  #few(base_size = 15)
     
     print (p)
 
-return()
+    
+
+    q <- ggplot(df, aes(x = value)) +
+        geom_histogram(bins = 15, fill = "royalblue", 
+                       color = "white", 
+                       alpha = 0.8,
+                       show.legend = FALSE) +
+        labs(title = paste("Distribution of  Random Food Webs (", rnd_type, ")", 
+                           file_name, sep = ""),
+             x = "Trophic Level",
+             y = "Count") +
+        geom_segment(
+            data = obs,
+            aes(x = x, xend = x, y = 0, yend = dens_max * 0.0, color = "red"),
+            arrow = arrow(length = unit(0.5, "cm")),
+            linewidth = 0.9,
+            inherit.aes = FALSE,
+            show.legend = FALSE  
+        ) +
+        theme_minimal()
+    
+    print(q)
+    
+    return()
     
 }
 
@@ -140,7 +164,7 @@ return()
 #   AND PRESERVING THE IN- AND OUT-DEGREES
 
 random_links <- function(gr) {
-    # g <- gr
+
     iteraciones <- 100*ecount(gr)
     # generate the random web using igraph function
     random_gr <- rewire(
@@ -148,11 +172,18 @@ random_links <- function(gr) {
         with = keeping_degseq(loops = FALSE,
                               niter = iteraciones)
     )
+        cat("\014")
+        cat("  _________________________________________________\n")
+        cat("               Food Web Topology Analysis\n")
+        cat("                         V 1.2\n")
+        cat("       Random algorithm:\n")
+        cat("       Random links preserving in- and out-degrees\n")
+         cat("  _________________________________________________\n")
+        cat("\n")
+       
+    cat("   Random web is connected?  \n\n",igraph::is_connected(random_gr))
     
-    cat("Random web is connected?  \n",igraph::is_connected(random_gr))
-    cat("In-degree for each node: \n", igraph::degree(random_gr, mode = "in"))
-    cat("Out-degree for each node: \n", igraph::degree(random_gr, mode = "out"))
-    
+
     return(random_gr)
 }
 
@@ -196,7 +227,8 @@ gen_analiza_rand_fw <- function(gr, names_1, num_rand_webs, random_model_type,
         
         #browser()
         # Convert results to a data frame
-            estructura_azar <- do.call(rbind, lapply(res_estr_rnd, as.data.frame))
+            estructura_azar <- do.call(rbind, lapply(res_estr_rnd, 
+                                                     as.data.frame))
 
     #MODULARITY...       
         #MODULES FOR EACH RANDOM FOOD WEB
@@ -207,7 +239,8 @@ gen_analiza_rand_fw <- function(gr, names_1, num_rand_webs, random_model_type,
     
     #MODULARITY OF RANDOM FOOD WEBS AS LIST
     mod_leid_azar <- lapply(1:num_rand_webs, function(i) 
-        igraph::modularity(rand_matrix[[i]], modularity_leid_rnd[[i]]$membership,
+        igraph::modularity(rand_matrix[[i]], 
+                           modularity_leid_rnd[[i]]$membership,
                            resolition = 1, directed = TRUE))
     #MODULARITY OF RANDOM FOOD WEBS AS DATA FRAME
     modul_leiden_rnd <- do.call(rbind, lapply(mod_leid_azar, as.data.frame))
@@ -215,7 +248,8 @@ gen_analiza_rand_fw <- function(gr, names_1, num_rand_webs, random_model_type,
     #OBTAIN THE NUMBER OF MODULES FOR EACH RANDOM FOOD WEB
     num_modul_leid_rnd <- lapply(1:num_rand_webs, function(i) 
         max(as.numeric(modularity_leid_rnd[[i]]$membership)))
-    num_modul_leid_rnd <- do.call(rbind, lapply(num_modul_leid_rnd, as.data.frame))
+    num_modul_leid_rnd <- do.call(rbind, lapply(num_modul_leid_rnd, 
+                                                as.data.frame))
     
     estructura_azar[,15] <- num_modul_leid_rnd
     estructura_azar[,16] <- modul_leiden_rnd
@@ -229,7 +263,7 @@ gen_analiza_rand_fw <- function(gr, names_1, num_rand_webs, random_model_type,
     write.table(estructura_azar, file = xx2, 
                 append = F, sep = ",")
 
- return(estructura_azar$TLMean)   
+ return(estructura_azar$tl_mean)   
 
 }
 
@@ -287,7 +321,8 @@ read_data <- function () {
     if (nrow(dat) != ncol(dat)) {
         stop("ERROR: The adjacency matrix is not square.\n",
              "  -> Found ", nrow(dat), " rows and ", ncol(dat), " columns.\n",
-             "  -> Please ensure the number of species (rows) matches the number of predators (columns).")
+             "  -> Please ensure the number of species (rows) matches the 
+             number of predators (columns).")
     }
     
     # 2. CHECK: Row names match column names IN THE SAME ORDER
@@ -298,7 +333,8 @@ read_data <- function () {
              "  -> At position ", mismatch_idx, ", row name is '", 
              rownames(dat)[mismatch_idx],
              "' but column name is '", colnames(dat)[mismatch_idx], "'.\n",
-             "  -> Please ensure the species list is identical and in the *same order* for rows and columns.")
+             "  -> Please ensure the species list is identical and in the 
+             *same order* for rows and columns.")
     }
     
     # 3. CHECK: All values are 0 or 1 (Binary Adjacency)
@@ -306,7 +342,8 @@ read_data <- function () {
         invalid_vals <- unique(as.vector(as.matrix(dat)[!as.matrix(dat) %in% c(0, 1)]))
         stop("ERROR: Matrix contains non-binary values.\n",
              "  -> Found values: ", paste(invalid_vals, collapse = ", "), "\n",
-             "  -> Please ensure all interactions are coded as 0 (absent) or 1 (present).")
+             "  -> Please ensure all interactions are coded as 0 (absent) 
+             or 1 (present).")
     }
     
     # 5. NEW CHECK: Names must not be pure numbers
@@ -322,13 +359,16 @@ read_data <- function () {
         cat("ATTENTION: Invalid species names detected.\n",
              "  -> The following names are purely numeric: ", 
              paste(unique(numeric_names), collapse = ", "), "\n",
-             "  -> Package dependencies (like 'cheddar') require proper alphanumeric names.\n",
-             "  -> Please rename them (e.g., '1' -> 'Sp1', 'Species_1', or 'S01').\n",
+             "  -> Package dependencies (like 'cheddar') require proper 
+            alphanumeric names.\n",
+             "  -> Please rename them (e.g., '1' -> 'Sp1', 'Species_1', 
+            or 'S01').\n",
             "-> The program will add the prefix SPS_ to the number\n\n")
         
         rownames(dat) <- paste("SPS_", names_1, sep = "")
         colnames(dat) <- paste("SPS_", names_1, sep = "")
-        cat("   Modified names use 'SPS_' prefix to ensure compatibility with analysis packages.\n\n")
+        cat("   Modified names use 'SPS_' prefix to ensure compatibility with 
+            analysis packages.\n\n")
         
     }
     
@@ -337,7 +377,8 @@ read_data <- function () {
     if(length(problematic_names) > 0) {
         warning("  NOTE: Some names contain spaces or special characters: ", 
                 #paste(unique(problematic_names), collapse = ", "), "\n",
-                "  -> Consider using only letters, numbers, and underscores for compatibility.")
+                "  -> Consider using only letters, numbers, and underscores 
+                for compatibility.")
         
     }
     
@@ -505,7 +546,6 @@ grados <- function(gr_deg) {
     
 }
 
-# --- 4. CÁLCULO DE MÉTRICAS TOPOLÓGICAS POR NODO -----------------------------
 # ACCORDING TO A  KIMI(?) IDEA
 # CONSIDERS IN AND OUT DEGREE
 # 
@@ -611,7 +651,7 @@ calcular_roles <- function(grafo, membresia) {
 }
 
 
-# --- 5. CLASIFICACIÓN DE ROLES (Guimerà & Amaral, 2005) ----------------------
+# CLASIFICACIÓN DE ROLES (Guimerà & Amaral, 2005) ----------------------
 # ACCORDING TO A  KIMI(?) IDEA
 
 clasificar_rol <- function(z, P) {
@@ -639,7 +679,7 @@ clasificar_rol <- function(z, P) {
 
 # calculo del rol de nodes and the figure of them
 # 
-rol_nodos <- function(red_igraph, leiden_dat) {
+rol_nodos <- function(red_igraph, leiden_dat, file_name) {
     # 
     # Asignar membresía a los nodos
     
@@ -656,13 +696,13 @@ rol_nodos <- function(red_igraph, leiden_dat) {
     tabla_roles <- table(roles_df$rol)
     print(tabla_roles)
     
-    # --- 6. AÑADIR ATRIBUTOS AL GRAFO -------------------------------------------
+#AÑADIR ATRIBUTOS AL GRAFO -------------------------------------------
     
     V(red_igraph)$z_score <- roles_df$z_score
     V(red_igraph)$P <- roles_df$P
     V(red_igraph)$rol <- roles_df$rol_simple
     
-    # --- 7. VISUALIZACIONES ------------------------------------------------------
+    #VISUALIZACIONES ------------------------------------------------------
     
     colores_roles <- brewer.pal(n = 7, name = "Set1")
     names(colores_roles) <- c("Ultra-peripheral", "Peripheral", 
@@ -681,7 +721,7 @@ rol_nodos <- function(red_igraph, leiden_dat) {
                    color = "black", linewidth = 0.7) +
         scale_color_manual(values = colores_usar, name = "Roll") +
         labs(
-            title = "Nodes Topological Rolls",
+            title = paste("Nodes Topological Rolls | ", file_name),
             x = "Participation Coefficient (P)",
             y = "Within-Module Degree (z-score)"
         ) +
@@ -723,7 +763,8 @@ Web.CascadeModel <- function(S, C, tol, names_1, ...) {
         while (iter < 10000) {
             iter <- iter + 1
             
-            Web.Cascade <- matrix(0, S, S, dimnames = list(paste("S", 1:S, sep = ""), paste("S", 1:S, sep = "")))
+            Web.Cascade <- matrix(0, S, S, dimnames = list(paste("S", 1:S, sep = ""), 
+                                                           paste("S", 1:S, sep = "")))
                                                                  
             P <- 2 * C * S/(S - 1)
             r.value <- runif((S^2 - S)/2)
@@ -794,7 +835,9 @@ Web.CascadeModel <- function(S, C, tol, names_1, ...) {
         # colnames(Web.Cascade) <- paste("SPS", names_1, sep = "")
         rownames(Web.Cascade) <- names_1
         colnames(Web.Cascade) <- names_1
-        WebCascadeModel<-graph_from_adjacency_matrix(Web.Cascade, weighted = FALSE, mode = c("directed"))
+        WebCascadeModel<-graph_from_adjacency_matrix(Web.Cascade, 
+                                                     weighted = FALSE, 
+                                                     mode = c("directed"))
 
     return(WebCascadeModel)
 }
@@ -823,7 +866,8 @@ Web.NicheModel <- function(S, C, tol, names_1, ...) {
         while (iter < 10000) {
             iter <- iter + 1
             
-            Web.Niche <- matrix(0, S, S, dimnames = list(paste("S", 1:S, sep = ""), paste("S", 1:S, sep = "")))
+            Web.Niche <- matrix(0, S, S, dimnames = list(paste("S", 1:S, sep = ""), 
+                                                         paste("S", 1:S, sep = "")))
                                                                
             n <- sort(runif(S))
             b <- 1/(2 * C) - 1
@@ -964,11 +1008,10 @@ fw_struct_2 <- function(g_rand, tl_y_or_no, names_1) {
     if (tl_y_or_no == "YES") {
         
         final_results <- TL_Compute(g_rand, commty)
-        chain.stats <- 0   #TrophicChainsStats(commty)
-        chains_nom <- 0   #length(chain.stats$chain.lengths)
+        chain.stats <- TrophicChainsStats(commty)
+        chains_nom <- length(chain.stats$chain.lengths)
         # rm(chain.stats) #remove this object to get RAM
         # 
-        # # 3. METRIC 1: PREY-AVERAGED TL (The native cheddar version)
 
         tl_mean <- mean(final_results$ShortWeightedTL)
         maxTL <- max(final_results$ShortWeightedTL)
@@ -1005,6 +1048,7 @@ fw_struct_2 <- function(g_rand, tl_y_or_no, names_1) {
                 NCh = chains_nom, 
                 mean_path_length = mean_path_len,
                 nivel_trof_sps = final_results$ShortWeightedTL,
+                #nivel_trof_sps = final_results,
                 vul_std = sd(vul),
                 gen_std = sd(gen)))
 }
@@ -1013,14 +1057,13 @@ fw_struct_2 <- function(g_rand, tl_y_or_no, names_1) {
 #   FUNCTION TO DRAW A FOOD WEB
 #   graph_data = an igraph object of the food web
 #   
-draw_1 <- function(gr, niv_trof_sps, fwt_results_dir) {
+draw_1 <- function(gr, niv_trof_sps, fwt_results_dir, modulos) {
     #browser()
-    # ==========================================
     # 2. PREPARE THE GRAPH WITH TROPHIC LEVELS
-    # ==========================================
     # Add the calculated ShortWeightedTL as an attribute to our igraph object nodes
+    #V(gr)$TrophicLevel <- niv_trof_sps$ShortWeightedTL[match(V(gr)$name, niv_trof_sps$SPS)]
     V(gr)$TrophicLevel <- niv_trof_sps$TL[match(V(gr)$name, niv_trof_sps$SPS)]
-    
+    V(gr)$modulos <- modulos #[match(V(gr)$name, names(modulos))]
     # Create a clean layout: 
     # X = random spread so nodes don't overlap horizontally
     # Y = the exact Trophic Level so energy flows upwards
@@ -1028,36 +1071,58 @@ draw_1 <- function(gr, niv_trof_sps, fwt_results_dir) {
     custom_layout[, 1] <- runif(vcount(gr), min = 0, max = 10)  # Horizontal spread
     custom_layout[, 2] <- V(gr)$TrophicLevel                  # Vertical Trophic Level
     
-    # ==========================================
+                # 1. Define line boundaries for the trophic level axis vertical line
+                line_x <- 0.5
+                y_start <- 1
+                y_end <- 4#max(V(gr)$TrophicLevel) + 1  # Extend a bit beyond the max for aesthetics
+                
+                
+                # 2. Create ticks strictly between the line's scale (every 1 unit)
+                tick_width <- 0.1
+                ticks_df <- data.frame(
+                    y = seq(y_start, y_end, by = 1),
+                    x_start = line_x - (tick_width / 2),
+                    x_end = line_x + (tick_width / 2)
+                )
+                
+    
     # 3. CONVERT TO GGNETWORK FORMAT
-    # ==========================================
     n <- ggnetwork::ggnetwork(gr, layout = custom_layout)
     
-    # ==========================================
     # 4. PLOT THE FOOD WEB
-    # ==========================================
     p <- ggplot2::ggplot(n, aes(x = x, y = y, xend = xend, yend = yend)) +
         # Draw the feeding links (light gray with transparency so it's not overwhelming)
-        geom_edges(color = "grey70", alpha = 0.4, 
+        geom_edges(color = "grey70", alpha = 0.5, 
                    arrow = arrow(length = unit(6, "pt"), type = "closed")) +
-        # Draw the species nodes (colored by their Trophic Level)
-        geom_nodes(aes(color = TrophicLevel), size = 4) +
+        # Draw the species nodes (colored by their Trophic Level) cambie TrophicLevel por modulos
+        geom_nodes(aes(color = modulos), size = 4) +
         # Styling the color palette (Darker colors for basal, lighter for apex predators)
         scale_color_viridis_c( option = "plasma") +
         # Clean up the background layout
         theme_blank() +
         labs(
             title = paste("Food Web Structure ", fwt_results_dir),
-            subtitle = paste("Nodes:", vcount(gr), " | Links:", ecount(gr)),
-            y = "Short-Weighted Trophic Level"
+            subtitle = paste("Nodes:", vcount(gr), " | Links:", ecount(gr), 
+                             "| Max TL: ", signif(max(V(gr)$TrophicLevel), 
+                                                  digits = 3)),
+            y = "Short-Weighted Trophic Level" 
         ) +
+        
         # Ensure the Y-axis acts as a true scale for your Trophic Levels
         # name = "Short Weighted TL",
         theme(
             axis.title.y = element_text(angle = 90, vjust = 2, size = 12),
             plot.title = element_text(size = 14, face = "bold")
-        )
-    
+        )  
+        #eje de TL
+        geom_segment(aes(x = line_x, xend = line_x, y = y_start, yend = y_end, 
+                     color = "blue", linewidth = 1))
+                     
+        # geom_segment(data = ticks_df, aes(x = 0, xend = 0, y = y, yend = y), 
+        #                  color = "blue", linewidth = 1) +
+        # geom_segment(aes(x = line_x, xend = line_x, y = y_start, yend = y_end), 
+        #              color = "blue", linewidth = 1)
+        # 
     print(p)
 
     return()
@@ -1409,10 +1474,8 @@ gen_rnd_fw <- function(gr, names_1, num_rand_webs, random_model_type,
 #browser()
 #
 
-    # =====================================================
     # SET UP RUN FOLDER AND LOG FILE
-    # =====================================================
-    
+
     # Build a unique run ID from algorithm + timestamp
     timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
     run_id <- paste0("run_", timestamp, "_", random_model_type)
@@ -1489,7 +1552,8 @@ gen_rnd_fw <- function(gr, names_1, num_rand_webs, random_model_type,
                 tolerancia <- 0
             #browser()
             #erdos-renyi
-                rand_matrix <- lapply(1:num_rand_webs, function(i) er(gr, names_1))
+                rand_matrix <- lapply(1:num_rand_webs, function(i) 
+                    er(gr, names_1))
             
             }
         else {
@@ -1520,16 +1584,16 @@ gen_rnd_fw <- function(gr, names_1, num_rand_webs, random_model_type,
             for (i in seq_along(rand_matrix)) {
                 saveRDS(
                     rand_matrix[[i]], 
-                    file = file.path(run_dir, paste0("_", random_model_type, i, ".rds"))
+                    file = file.path(run_dir, paste0("_", random_model_type, 
+                                                     i, ".rds"))
                 )
             }
-            cat("✅ Saved", length(rand_matrix), "random webs to:", run_dir, "\n")
+            cat("✅ Saved", length(rand_matrix), "random webs to:", r
+                un_dir, "\n")
         }
 
-    # =====================================================
     # WRITE LOG FILE
-    # =====================================================
-    
+
     log_lines <- c(
         "==============================",
         "FWTopo Random Web Generation Log",
@@ -1635,7 +1699,9 @@ generate_validation_report <- function(adj_matrix, filename, algo_rnd,
     #browser()
     # Save validation report
     validation_file <- paste0(tools::file_path_sans_ext(filename), "_LOG.txt")
-    validation_file <- paste0(directorio, "/", format(Sys.time(), "%Y.%m.%d_%H.%M.%S_"), validation_file)
+    validation_file <- paste0(directorio, "/", format(Sys.time(), 
+                                                      "%Y.%m.%d_%H.%M.%S_"), 
+                              validation_file)
     capture.output(print(report), file = validation_file)
     
     cat("✅ Validation report saved as:", validation_file, "\n")
@@ -1653,7 +1719,13 @@ fw_struct_rnd <- function(g_rand, tl_y_or_no, names_1) {
    # 
    #cheddar option to run regardless of the number of chains
     options(cheddarMaxQueue = 0)
+    DAG<-is_dag(g_rand)
     
+    #Eliminar ciclos del grafo
+    if(DAG ==FALSE){
+        edges_cycle<-feedback_arc_set(g_rand, algo="approx_eades")
+        g_rand<-delete_edges(g_rand, edges_cycle)
+    }
     num_sps <- vcount(g_rand)
     num_links <- ecount(g_rand)
     conectance <- num_links / (num_sps ^2)
@@ -1674,18 +1746,24 @@ fw_struct_rnd <- function(g_rand, tl_y_or_no, names_1) {
                         properties=list(title="Community"))
     
     if (tl_y_or_no == "YES") {
-        # chain.stats <- TrophicChainsStats(commty)
-        # chains_nom <- length(chain.stats$chain.lengths)
-        #     cat("Number of chains: \n")
-        #     print(chains_nom)
+        chain.stats <- 0 #TrophicChainsStats(commty)
+        chains_nom <- 0 #length(chain.stats$chain.lengths)
+           cat("Number of chains: \n")
+           cat(chains_nom)
         
         cat("COMPUTING TROPHIC LEVELS OF TE RANDOM WEB \n\n")
         
         final_results <- TL_Compute(g_rand, commty)
         
-        tl_mean <- mean(final_results$ShortWeightedTL)
-        maxTL <- max(final_results$ShortWeightedTL)
+        tl_mean_SWTL <- mean(final_results$ShortWeightedTL)
+        maxTL_SWTL <- max(final_results$ShortWeightedTL)
+        # tl_mean_PA <- mean(final_results$PreyAveragedTL)
+        # maxTL_PA <- max(final_results$PreyAveragedTL)
+        # tl_mean_STL <- mean(final_results$ShortestTL)
+        # maxTL_STL <- max(final_results$ShortestTL)
+        
     } else {
+        
         tl_mean <- 0
         maxTL <- 0
         chains_nom <- 0
@@ -1715,9 +1793,13 @@ fw_struct_rnd <- function(g_rand, tl_y_or_no, names_1) {
                 I = int, 
                 T = tope, 
                 O = omni, 
-                TLMean = tl_mean,
-                TLmax = maxTL, 
-                NCh = 0, #chains_nom, 
+                tl_mean = tl_mean_SWTL,
+                # TLPreyAveragedLMean = tl_mean_PA,
+                # TLShortestLMean = tl_mean_STL,
+                # TLShortestmax = maxTL_STL, 
+                maxTL = maxTL_SWTL,
+                # TLPreyAveragedmax = maxTL_PA,
+                NCh = chains_nom, 
                 mean_path_length = mean_path_len,
                 vul_std = sd(vul),
                 gen_std = sd(gen),
@@ -1978,7 +2060,9 @@ gen_valid_for_rnd <- function(adj_matrix, filename, algo_rnd,
     #browser()
     # Save validation report
     validation_file <- paste0(tools::file_path_sans_ext(filename), "_LOG.txt")
-    validation_file <- paste0(directorio, "/", format(Sys.time(), "%Y.%m.%d_%H.%M.%S_"), validation_file)
+    validation_file <- paste0(directorio, "/", format(Sys.time(), 
+                                                      "%Y.%m.%d_%H.%M.%S_"), 
+                              validation_file)
     capture.output(print(report), file = validation_file)
     
     cat("✅ Validation report saved as:", validation_file, "\n")

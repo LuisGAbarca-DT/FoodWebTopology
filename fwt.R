@@ -5,7 +5,7 @@
 #                       V.1.2
 #                   12 SEPTEMBER 2026
 #   
-#   Luis Gerardo Abarca     gabarca@uv.mx   luisgaa@gmail.com
+#   Luis Gerardo Abarca-Arenas     gabarca@uv.mx   luisgaa@gmail.com
 #   Israel Huesca Domínguez ihuesca@uv.mx
 #   
 #               IIB Universidad Veracruzana
@@ -158,9 +158,10 @@ if (!original_done) {
                               "SPSsTL.csv")
         write.table(niv_trof_sps, file = write_file_1, append = F, sep = ",", row.names = FALSE)
 
-    if (figure == "YES") {
-        draw_1(gr, niv_trof_sps, fwt_results_dir)
-    }
+    # if (figure == "YES") {
+    #     #niv_tro <- as.data.frame(niv_trof_sps$ShortWeightedTL)
+    #     draw_1(gr, niv_trof_sps, fwt_results_dir)
+    # }
 
     
 ##  ............................................................................
@@ -300,13 +301,17 @@ cat("--------------------STATUS-----------------------")
             write.table(estruct_original_1, file = write_file_1, 
                         append = F, sep = ",")
            
-             if (figure == "YES") {
+            #  if (figure == "YES") {
+            # 
+            #     draw_modules(gr, module_numb_leid, resulta7_a)
+            #     
+            # }
 
-                draw_modules(gr, module_numb_leid, resulta7_a)
-                
+            if (figure == "YES") {
+                #niv_tro <- as.data.frame(niv_trof_sps$ShortWeightedTL)
+                draw_1(gr, niv_trof_sps, fwt_results_dir, members_leid)
             }
-
-
+            
 ### . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ..
 ### 3.8.1. Compute Module Partition                                         ####
             
@@ -356,7 +361,7 @@ cat("--------------------STATUS-----------------------")
 ### . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ..
 ### 3.8.4. Compute Node Roles                                               ####
     
-    roles <- rol_nodos(gr, members_leid)
+    roles <- rol_nodos(gr, members_leid, file_name)
     
         xx <- gsub(".csv", "", file_name)
         write_file_1 <- str_c(fwt_results_dir_orig, "/", 
@@ -484,7 +489,8 @@ if (algo_num != 6) {
             final_results_2 <- TL_Compute(gr, cama)
                 mean_tl_obs <- mean(final_results_2$ShortWeightedTL)
             tl_mean_rnd <- as.data.frame(tl_mean)
-                draw_rnd_dens(tl_mean_rnd, mean_tl_obs)
+                draw_rnd_dens(tl_mean_rnd, mean_tl_obs, 
+                              random_model_type, file_name)
  
          }
 
