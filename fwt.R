@@ -1,6 +1,6 @@
 #  
 #  
-#               Food Web Topology Analysis
+#                 Food Web Topology
 #                   Master Script
 #                       V.1.2
 #                   12 SEPTEMBER 2026
@@ -9,6 +9,20 @@
 #   Israel Huesca Domínguez ihuesca@uv.mx
 #   
 #               IIB Universidad Veracruzana
+#   
+#   ## Overview
+
+### Computes various structural and topological indices for a food web, including:
+# - Number of species by category (basal, intermediate, top)
+# - Connectivity and centrality values
+# - Trophic levels
+# - Modularity (using Leiden algorithm with adjustable resolution)
+# - And many other topological metrics
+# - Multiple Null Models: Erdős–Rényi, Cascade, Niche (two versiona), Randomm links (Curveball) 
+# - Every random food web is analyzed through vaious indices
+# - Validation Checks: Automated data integrity verification
+# - Reproducible: Complete analysis logging and parameter tracking
+# - All results are exported as comma-delimited files.
 #   
 #   
 
@@ -23,7 +37,6 @@ rm(list=ls(all.names = TRUE))
 ##  ............................................................................
 ##  1.1. Install Dependencies                                               ####
 
-#setwd("D:/PROYECTO_FW_AZAR_GITHUB/FW_SCRIPTS/FWTopo_V2")
 #      INSTALL DEPENDENCIES
 source("fwt_dependencies.R")
 
@@ -40,7 +53,7 @@ source("fwt_functions.R")
     #CLEAR SCREEN (CONSOLE)
     cat("\014")
 
-    #cheddar option to run regardless of the number of chains
+    #cheddar option to run regardless (almost) of the number of chains
     options(cheddarMaxQueue = 0)
     
     
@@ -147,23 +160,26 @@ if (!original_done) {
     original_str <- fw_struct_2 (gr, "YES", names_1$node)
     
         #TROPHIC LEVEL FOR EACH SPECIES
-    
-    niv_trof_sps <- as.data.frame(original_str$nivel_trof_sps)
-    rownames(niv_trof_sps) <- names_1$node
-    niv_trof_sps$SPS <- rownames(niv_trof_sps)
-    colnames(niv_trof_sps)[1] <- "TL"
-    
+    #browser()
+    #niv_trof_sps <- as.data.frame(original_str$nivel_trof_sps)
+    SWTL <- as.data.frame(original_str$nivel_trof_sps_SWTL)
+    PATL <- as.data.frame(original_str$nivel_trof_sp_PATL)
+    STL <-  as.data.frame(original_str$nivel_trof_sp_STL)
+    nombre <- names_1$node
+    niv_trof_sps <- cbind(nombre, SWTL, PATL, STL)
+    colnames(niv_trof_sps) <- c("SPS", "ShortWeightedTL", "PreyAveragedTL", "ShortTL")
+
         xx <- gsub(".csv", "", file_name)
         write_file_1 <- str_c(fwt_results_dir_orig, "/", xx, "_ORIGINAL_", 
                               "SPSsTL.csv")
         write.table(niv_trof_sps, file = write_file_1, append = F, sep = ",", row.names = FALSE)
 
-    # if (figure == "YES") {
-    #     #niv_tro <- as.data.frame(niv_trof_sps$ShortWeightedTL)
-    #     draw_1(gr, niv_trof_sps, fwt_results_dir)
-    # }
+        #remove the TL data
+        original_str$nivel_trof_sps_SWTL <- NULL
+        original_str$nivel_trof_sp_PATL <- NULL
+        original_str$nivel_trof_sp_STL <- NULL
 
-    
+        
 ##  ............................................................................
 ##  3.2. Compute Efficiency                                                 ####
     cat("\n")
@@ -309,7 +325,10 @@ cat("--------------------STATUS-----------------------")
 
             if (figure == "YES") {
                 #niv_tro <- as.data.frame(niv_trof_sps$ShortWeightedTL)
-                draw_1(gr, niv_trof_sps, fwt_results_dir, members_leid)
+                nivel_tl <- as.data.frame(niv_trof_sps$ShortWeightedTL)
+                nivel_tl$SPS <- names_1$node
+                colnames(nivel_tl) <- c("TL", "SPS")
+                draw_1(gr, nivel_tl, fwt_results_dir, members_leid)
             }
             
 ### . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ..

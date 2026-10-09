@@ -6,7 +6,7 @@
 
 #                   12 SEPTEMBER 2026
 #   
-#   Luis Gerardo Abarca     gabarca@uv.mx   luisgaa@gmail.com
+#   Luis Gerardo Abarca-Arenas     gabarca@uv.mx   luisgaa@gmail.com
 #   Israel Huesca Domínguez ihuesca@uv.mx
 #   
 #               IIB Universidad Veracruzana

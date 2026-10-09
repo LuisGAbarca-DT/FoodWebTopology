@@ -1,6 +1,6 @@
 #  
 #  
-#               Food Web Topology Analysis
+#               Food Web Topology 
 #                   FUNCTIONS
 #                     V 1.2
 #                     
@@ -68,7 +68,7 @@ TL_Compute <- function(g_rand, commty) {
 # THE ORIGINAL FOOD WEB
 # 
 draw_rnd_dens <- function(tl_azar, tl_observ, rnd_type, file_name) {
-    
+   # browser()
     #tl_observ = the trophic level of the original food web
     #rnd_tl = the trophic level of the random food web
     observed_df_1 <- data.frame(tl_observ)
@@ -80,6 +80,8 @@ draw_rnd_dens <- function(tl_azar, tl_observ, rnd_type, file_name) {
             times = c(length(value$tl_mean))
         
     )
+    df <- na.omit(df)
+    
     obs <- data.frame(
         web = c("RndWeb"),
     x = c(tl_observ)
@@ -131,7 +133,10 @@ draw_rnd_dens <- function(tl_azar, tl_observ, rnd_type, file_name) {
         theme_minimal()  #few(base_size = 15)
     
     print (p)
-
+ 
+    # # Save the plot directly to TIFF
+    #         ggsave("Random_TL_Density.tiff", plot = p, width = 6, height = 4, 
+    #                units = "in", dpi = 300, compression = "lzw")
     
 
     q <- ggplot(df, aes(x = value)) +
@@ -165,6 +170,21 @@ draw_rnd_dens <- function(tl_azar, tl_observ, rnd_type, file_name) {
 
 random_links <- function(gr) {
 
+    #browser()
+    
+    cat("\014")
+    cat("  _________________________________________________\n")
+    cat("               Food Web Topology \n")
+    cat("                         V 1.2\n")
+    cat("       Random algorithm:\n")
+    cat("       Random links preserving in- and out-degrees\n")
+    cat("  _________________________________________________\n")
+    cat("\n")
+
+loop_value <- TRUE
+
+#while (loop_value == TRUE) {
+    
     iteraciones <- 100*ecount(gr)
     # generate the random web using igraph function
     random_gr <- rewire(
@@ -172,18 +192,60 @@ random_links <- function(gr) {
         with = keeping_degseq(loops = FALSE,
                               niter = iteraciones)
     )
-        cat("\014")
-        cat("  _________________________________________________\n")
-        cat("               Food Web Topology Analysis\n")
-        cat("                         V 1.2\n")
-        cat("       Random algorithm:\n")
-        cat("       Random links preserving in- and out-degrees\n")
-         cat("  _________________________________________________\n")
-        cat("\n")
-       
+    
     cat("   Random web is connected?  \n\n",igraph::is_connected(random_gr))
     
-
+    
+    
+    loop_value <- any_loop(random_gr)
+    
+    #browser()
+    # #quitar loops
+    # #
+    # 
+     if (loop_value == FALSE) {
+    #     #LEVINES METHOD FOR TROPHIC LEVEL
+    #     #checar si la matriz es singular
+    #     
+        A <- as_adjacency_matrix(random_gr, names = TRUE, sparse = FALSE)
+        A <- t(A)
+    #     
+    #     # Assuming you have your food web matrix 'M' (the normalized flow matrix)
+    #     # or adjacency matrix 'A' from which you'll create M
+    #     
+    #     # Create the matrix needed for Levine's method
+         n <- nrow(A)  # number of species/size of your matrix
+    #     
+    #     # First, create matrix M (normalized by row sums)
+         row_sums <- rowSums(A)
+    #     # Handle division by zero for basal species (rows with no prey)
+         row_sums[row_sums == 0] <- 1  
+         M <- A / row_sums
+    #     
+    #     # Create the identity matrix
+         I <- diag(n)
+    #     
+    #     # The key matrix for Levine's method
+         levine_matrix <- I - M
+    #     
+    #     # Check if it's singular by looking at the determinant
+         det_value <- det(levine_matrix)
+    #     
+         if(abs(det_value) < 1e-10) {  # Using a small tolerance for numerical precision
+    #         #cat("Matrix is singular or nearly singular - trophic levels will be NA\n")
+             Singular <- "TRUE"
+         } else {
+    #         #cat("Matrix is invertible - trophic levels should be computable\n")
+             Singular <- "FALSE"
+             cat("Determinant of (I - M):", det_value, "\n")
+    #         
+         }
+    #     
+     }
+    # 
+    
+   
+#}
     return(random_gr)
 }
 
@@ -206,7 +268,7 @@ gen_analiza_rand_fw <- function(gr, names_1, num_rand_webs, random_model_type,
 
         cat("\014")
         cat("  _________________________________________________\n")
-        cat("               Food Web Topology Analysis\n")
+        cat("               Food Web Topology \n")
         cat("                         V 1.2\n")
         cat("  _________________________________________________\n")
         cat("\n")
@@ -251,11 +313,11 @@ gen_analiza_rand_fw <- function(gr, names_1, num_rand_webs, random_model_type,
     num_modul_leid_rnd <- do.call(rbind, lapply(num_modul_leid_rnd, 
                                                 as.data.frame))
     
-    estructura_azar[,15] <- num_modul_leid_rnd
-    estructura_azar[,16] <- modul_leiden_rnd
+    estructura_azar[,19] <- num_modul_leid_rnd
+    estructura_azar[,20] <- modul_leiden_rnd
     
-    colnames(estructura_azar)[15] <- "No_Modules"
-    colnames(estructura_azar)[16] <- "Modularity"
+    colnames(estructura_azar)[19] <- "No_Modules"
+    colnames(estructura_azar)[20] <- "Modularity"
     
     xx <- gsub(".csv", "", file_name)
         xx2 <- str_c(fwt_results_dir_rand, "/", xx, "_", random_model_type, "_", 
@@ -263,7 +325,7 @@ gen_analiza_rand_fw <- function(gr, names_1, num_rand_webs, random_model_type,
     write.table(estructura_azar, file = xx2, 
                 append = F, sep = ",")
 
- return(estructura_azar$tl_mean)   
+ return(estructura_azar$ShortWeigh_Mean_TL)   
 
 }
 
@@ -295,7 +357,7 @@ read_data <- function () {
     
     cat("\014")
     cat("  _________________________________________________\n")
-    cat("               Food Web Topology Analysis\n")
+    cat("               Food Web Topology \n")
     cat("                         V 1.2 \n")
     cat("  _________________________________________________\n")
     cat("\n")
@@ -853,7 +915,7 @@ Web.CascadeModel <- function(S, C, tol, names_1, ...) {
 
 Web.NicheModel <- function(S, C, tol, names_1, ...) {
     #number of singular matrices generated
-    #no_invertibles <- 0
+    no_invertibles <- 0
     # Connectance interval
     C.min <- C - tol
     C.max <- C + tol
@@ -932,7 +994,7 @@ Web.NicheModel <- function(S, C, tol, names_1, ...) {
                 if(abs(det_value) < 1e-10) {  # Using a small tolerance for numerical precision
                     #cat("Matrix is singular or nearly singular - trophic levels will be NA\n")
                     Singular <- "TRUE"
-                    #no_invertibles <- no_invertibles + 1
+                    no_invertibles <- no_invertibles + 1
                 } else {
                     #cat("Matrix is invertible - trophic levels should be computable\n")
                     Singular <- "FALSE"
@@ -954,7 +1016,6 @@ Web.NicheModel <- function(S, C, tol, names_1, ...) {
         WebNicheModel <- graph_from_adjacency_matrix(Web.Niche, 
                                                      weighted = FALSE, 
                                                      mode = c("directed"))
-        
     return(WebNicheModel)
 }
 
@@ -1008,8 +1069,8 @@ fw_struct_2 <- function(g_rand, tl_y_or_no, names_1) {
     if (tl_y_or_no == "YES") {
         
         final_results <- TL_Compute(g_rand, commty)
-        chain.stats <- TrophicChainsStats(commty)
-        chains_nom <- length(chain.stats$chain.lengths)
+        chain.stats <- 0 #TrophicChainsStats(commty)
+        chains_nom <- 0 #length(chain.stats$chain.lengths)
         # rm(chain.stats) #remove this object to get RAM
         # 
 
@@ -1047,7 +1108,9 @@ fw_struct_2 <- function(g_rand, tl_y_or_no, names_1) {
                 TLmax = maxTL, 
                 NCh = chains_nom, 
                 mean_path_length = mean_path_len,
-                nivel_trof_sps = final_results$ShortWeightedTL,
+                nivel_trof_sps_SWTL = final_results$ShortWeightedTL,
+                nivel_trof_sp_PATL = final_results$PreyAveragedTL,
+                nivel_trof_sp_STL = final_results$ShortestTL,
                 #nivel_trof_sps = final_results,
                 vul_std = sd(vul),
                 gen_std = sd(gen)))
@@ -1588,8 +1651,7 @@ gen_rnd_fw <- function(gr, names_1, num_rand_webs, random_model_type,
                                                      i, ".rds"))
                 )
             }
-            cat("✅ Saved", length(rand_matrix), "random webs to:", r
-                un_dir, "\n")
+            cat("✅ Saved", length(rand_matrix), "random webs to:", run_dir, "  \n")
         }
 
     # WRITE LOG FILE
@@ -1640,7 +1702,7 @@ niche_model_2 <- function(sps, conec, names_1) {
 display_algorithm_menu <- function() {
     cat("\n")
     cat("  _________________________________________________\n")
-    cat("               Food Web Topology Analysis\n")
+    cat("               Food Web Topology \n")
     cat("  _________________________________________________\n")
     
     cat("=================================\n")
@@ -1680,7 +1742,7 @@ generate_validation_report <- function(adj_matrix, filename, algo_rnd,
     
     # Basic validation
     report <- list(
-        title = "....FOOD WEB TOPOLOGY ANALYSIS...",
+        title = "....FOOD WEB TOPOLOGY ",
         title_2 = "         V 1.2",
         input_file = filename,
         analysis_date <- Sys.Date(),
@@ -1746,8 +1808,8 @@ fw_struct_rnd <- function(g_rand, tl_y_or_no, names_1) {
                         properties=list(title="Community"))
     
     if (tl_y_or_no == "YES") {
-        chain.stats <- 0 #TrophicChainsStats(commty)
-        chains_nom <- 0 #length(chain.stats$chain.lengths)
+        chain.stats <- 0    #TrophicChainsStats(commty)
+        chains_nom <- 0     #length(chain.stats$chain.lengths)
            cat("Number of chains: \n")
            cat(chains_nom)
         
@@ -1757,10 +1819,10 @@ fw_struct_rnd <- function(g_rand, tl_y_or_no, names_1) {
         
         tl_mean_SWTL <- mean(final_results$ShortWeightedTL)
         maxTL_SWTL <- max(final_results$ShortWeightedTL)
-        # tl_mean_PA <- mean(final_results$PreyAveragedTL)
-        # maxTL_PA <- max(final_results$PreyAveragedTL)
-        # tl_mean_STL <- mean(final_results$ShortestTL)
-        # maxTL_STL <- max(final_results$ShortestTL)
+        tl_mean_PATL <- mean(final_results$PreyAveragedTL)
+        maxTL_PATL <- max(final_results$PreyAveragedTL)
+        tl_mean_STL <- mean(final_results$ShortestTL)
+        maxTL_STL <- max(final_results$ShortestTL)
         
     } else {
         
@@ -1786,19 +1848,20 @@ fw_struct_rnd <- function(g_rand, tl_y_or_no, names_1) {
     
     efic <- eficiency(commty)
     
-    res_est_rnd_1 <- data.frame(N = num_sps, 
+    res_est_rnd_1 <- data.frame(
+                N = num_sps, 
                 L = num_links,
                 con = conectance, 
                 B = b, 
                 I = int, 
                 T = tope, 
                 O = omni, 
-                tl_mean = tl_mean_SWTL,
-                # TLPreyAveragedLMean = tl_mean_PA,
-                # TLShortestLMean = tl_mean_STL,
-                # TLShortestmax = maxTL_STL, 
-                maxTL = maxTL_SWTL,
-                # TLPreyAveragedmax = maxTL_PA,
+                ShortWeigh_Mean_TL = tl_mean_SWTL,
+                ShortWeigh_Max_TL = maxTL_SWTL,
+                PreyAveraged_Mean_TL = tl_mean_PATL,
+                PreyAveraged_Max_TL = maxTL_PATL,
+                Shortest_Mean_TL = tl_mean_STL,
+                Shortest_Max_TL = maxTL_STL, 
                 NCh = chains_nom, 
                 mean_path_length = mean_path_len,
                 vul_std = sd(vul),
@@ -2044,7 +2107,7 @@ gen_valid_for_rnd <- function(adj_matrix, filename, algo_rnd,
     
     # Basic validation
     report <- list(
-        title = "....FOOD WEB TOPOLOGY ANALYSIS...",
+        title = "....FOOD WEB TOPOLOGY ",
         title_2 = "         V 1.2",
         input_file = filename,
         analysis_date <- Sys.Date(),

@@ -1,6 +1,6 @@
 #  
 #  
-#               Food Web Topology Analysis
+#                 Food Web Topology 
 #   
 #                     V. 1.2
 **12 SEPTEMBER 2026**
@@ -26,7 +26,7 @@
     - Trophic levels
     - Modularity (using Leiden algorithm with adjustable resolution)
     - And many other topological metrics
-    - Multiple Null Models: Erdős–Rényi, Cascade, Niche (two versiona), Randomm links (Cannonball) 
+    - Multiple Null Models: Erdős–Rényi, Cascade, Niche (two versiona), Randomm links (Curveball) 
             - Every random food web is analyzed through vaious indices
     - Validation Checks: Automated data integrity verification
     - Reproducible: Complete analysis logging and parameter tracking
@@ -47,7 +47,9 @@
   - At least one top species (out-degree = 0)
   - No isolated nodes or disconnected groups
   - Nodes names should be alpha-numeric
-        - If the row and column names are numeric, the program will add the suffix "SPS_" to the number in order to comply with the alphanumeric characteristic
+        - If the row and column names are numeric, the program will add the 
+        suffix "SPS_" to the number in order to comply with the alphanumeric 
+        characteristic
 
   
 ### **Validation:**
@@ -70,7 +72,8 @@ provided in the repository (`template_foodweb.csv`).
 - Download all fwt files to a single folder
 - Place your food web csv file in the same folder (Optional)
 - Set R's working directory to this folder
-- The results will be saved in a subdirectory named after your csv file (without the .csv extension) in this directory
+- The results will be saved in a subdirectory named after your csv file 
+(without the .csv extension) in this directory
 
 
 
@@ -85,19 +88,26 @@ provided in the repository (`template_foodweb.csv`).
 - Select the csv file with the food web data
 - Choose the randomization model
 - Enter the number of random food webs to be generated
-- Enter if you want to compute number of chains and trophic levels for each
-    random web (the computation is time consuming and uses big amounts of RAM for large webs)
+- Enter if you want to compute trophic levels for each
+    random web (the computation is time consuming and uses big amounts of RAM 
+    for large webs)
 - Enter the resolution for the Leiden Modularity algorithm (higher = more modules)
-- Enter if you want a figure of the food web and each of the modules. 
+- Enter if you want a figure of the food web, each node colored by its module. 
     
 ### 4. Results
 
 - Considering the data file name, the resuts will be saved according with this
 name as a prefix of the type of analysis presented. For example, if the file 
-name of the data is **your_web.csv** then the program will generate a directory (**RESULTS**). 
-Within it, two more directories: **ORIGINAL** and **RANDOM** The first one with the results for the 
-original data and the second one with the results for the randomized webs. A log file
-will be placed at the ORIGINAL directory with information related to the analysis.
+name of the data is **your_web.csv** then the program will generate a directory
+***your_web_FWTA***. 
+Within it a directory (**RESULTS**) with two more directories: **ORIGINAL** and
+**RANDOM** The first one with the results for the 
+original data and the second one with the results for the randomized webs. 
+Inside the ***RANDOM*** directory, a new directory ***RANDOMIZED_WEBS *** 
+where all the webs generated will be saved as ***rds*** readable by igraph. 
+The file names will have the date and time of its generation. 
+A log file will be placed at the ORIGINAL directory with information related 
+to the analysis.
 
 
 
